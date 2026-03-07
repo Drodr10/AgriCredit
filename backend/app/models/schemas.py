@@ -24,7 +24,9 @@ class MongoBaseModel(BaseModel):
 class FarmerBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
     national_id: str = Field(..., min_length=1, max_length=50)
+    clerk_id: str | None = Field(default=None, max_length=255)
     phone: str | None = Field(default=None, max_length=20)
+    email: str | None = Field(default=None, max_length=255)
     location: str | None = Field(default=None, max_length=200)
     gps_coordinates: str | None = Field(default=None, max_length=100)
     farm_size_hectares: float | None = Field(default=None, ge=0)
