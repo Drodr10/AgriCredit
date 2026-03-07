@@ -1,8 +1,37 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
+import GlobeMap from "./components/GlobeMap";
 
 export default function Home() {
+  const { isLoaded, isSignedIn, user } = useUser();
+  const router = useRouter();
+
+  const handleGetStarted = async () => {
+    if (!isSignedIn) {
+      router.push("/sign-up");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8000/users/me?clerk_id=${user.id}`);
+      if (response.ok) {
+        const userData = await response.json();
+        if (userData.role) {
+          router.push("/dashboard");
+        } else {
+          router.push("/role");
+        }
+      } else {
+         router.push("/role");
+      }
+    } catch (error) {
+       router.push("/role");
+    }
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-green-950 overflow-hidden">
       {/* Hero Section */}
@@ -24,8 +53,8 @@ export default function Home() {
             conditions and assess agricultural risk in real time.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-            <Link
-              href="/role"
+            <button
+              onClick={handleGetStarted}
               className="relative inline-flex items-center justify-center rounded-xl bg-green-500 px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-green-500/30 hover:bg-green-400 hover:shadow-green-400/40 transition-all duration-300 group"
             >
               <span>Get Started</span>
@@ -42,7 +71,7 @@ export default function Home() {
                   d="M13 7l5 5m0 0l-5 5m5-5H6"
                 />
               </svg>
-            </Link>
+            </button>
             <Link
               href="/map"
               className="inline-flex items-center justify-center rounded-xl border border-green-500/50 bg-green-950/30 px-8 py-3.5 text-base font-semibold text-green-400 hover:bg-green-900/50 hover:text-green-300 transition-all duration-300"
@@ -56,7 +85,32 @@ export default function Home() {
         <div className="absolute top-1/2 right-1/4 -translate-y-1/2 w-[600px] h-[600px] bg-green-500/10 rounded-full blur-[128px] pointer-events-none" />
       </section>
 
-
+      {/* India Drought Map */}
+      <section className="max-w-7xl mx-auto px-6 sm:px-10 pb-6">
+        <div className="rounded-2xl border border-slate-700/50 bg-slate-800/30 backdrop-blur-sm overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700/50">
+            <div>
+              <h2 className="text-lg font-semibold text-white">
+                India Drought Index
+              </h2>
+              <p className="text-sm text-slate-400">
+                SPEI-based drought severity by state — Source:{" "}
+                <a
+                  href="https://zenodo.org/records/8280551"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-green-400 hover:text-green-300 underline underline-offset-2"
+                >
+                  Zenodo Drought Atlas
+                </a>
+              </p>
+            </div>
+          </div>
+          <div className="h-[500px] lg:h-[600px]">
+            <GlobeMap />
+          </div>
+        </div>
+      </section>
 
       {/* Stats / Info Cards */}
       <section className="max-w-7xl mx-auto px-6 sm:px-10 pb-16">

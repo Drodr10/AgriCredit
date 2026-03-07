@@ -1,18 +1,32 @@
 "use client";
 
 import Link from "next/link";
+import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function RoleSelection() {
   const router = useRouter();
+  const { user } = useUser();
   const [selected, setSelected] = useState<"farmer" | "lender" | null>(null);
 
-  const handleContinue = () => {
-    if (selected === "farmer") {
-      router.push("/farm");
-    } else if (selected === "lender") {
-      router.push("/lender");
+  const handleContinue = async () => {
+    if (!selected || !user) return;
+
+    try {
+      const response = await fetch(`http://localhost:8000/users/me/role?clerk_id=${user.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ role: selected }),
+      });
+
+      if (response.ok) {
+        router.push("/dashboard");
+      } else {
+        console.error("Failed to update role");
+      }
+    } catch (error) {
+      console.error("Error updating role:", error);
     }
   };
 
