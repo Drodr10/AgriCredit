@@ -33,7 +33,10 @@ class FarmerBase(BaseModel):
     primary_crop: str | None = Field(default=None, max_length=100)
     age: int | None = Field(default=None, ge=18, le=120)
     experience_years: int | None = Field(default=None, ge=0)
+    tenure_years: int | None = Field(default=None, ge=0)
     irrigation_type: str | None = Field(default=None, max_length=100)
+    soil_category: str | None = Field(default=None, max_length=100)
+    machinery_type: str | None = Field(default=None, max_length=100)
 
 
 class FarmerCreate(FarmerBase):
@@ -49,7 +52,10 @@ class FarmerUpdate(BaseModel):
     primary_crop: str | None = Field(default=None, max_length=100)
     age: int | None = Field(default=None, ge=18, le=120)
     experience_years: int | None = Field(default=None, ge=0)
+    tenure_years: int | None = Field(default=None, ge=0)
     irrigation_type: str | None = Field(default=None, max_length=100)
+    soil_category: str | None = Field(default=None, max_length=100)
+    machinery_type: str | None = Field(default=None, max_length=100)
 
 
 class FarmerInDB(MongoBaseModel, FarmerBase):
