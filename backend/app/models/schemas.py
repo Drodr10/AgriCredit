@@ -63,6 +63,28 @@ class Farmer(FarmerBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class UserBase(BaseModel):
+    email: str = Field(..., max_length=255)
+    role: str = Field(default="farmer", max_length=50)
+
+
+class UserCreate(UserBase):
+    clerk_id: str = Field(..., max_length=255)
+
+
+class UserInDB(MongoBaseModel, UserBase):
+    clerk_id: str
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+
+
+class User(UserBase):
+    id: str
+    clerk_id: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class CreditApplicationBase(BaseModel):
     farmer_id: str = Field(...)
     crop_type: str = Field(..., max_length=100)
