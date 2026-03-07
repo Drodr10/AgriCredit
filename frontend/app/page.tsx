@@ -49,12 +49,6 @@ export default function Home() {
             >
               Explore Map
             </Link>
-            <Link
-              href="/api/docs"
-              className="inline-flex items-center justify-center rounded-xl border border-slate-600 px-8 py-3.5 text-base font-semibold text-slate-300 hover:border-slate-400 hover:text-white transition-all duration-300"
-            >
-              API Docs
-            </Link>
           </div>
         </div>
 
