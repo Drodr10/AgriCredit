@@ -1,18 +1,41 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useUser, useAuth } from "@clerk/nextjs";
+import { setRole } from "../actions/user";
 
 export default function RoleSelection() {
   const router = useRouter();
+  const { user } = useUser();
+  const { getToken } = useAuth();
   const [selected, setSelected] = useState<"farmer" | "lender" | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleContinue = () => {
-    if (selected === "farmer") {
-      router.push("/farm");
-    } else if (selected === "lender") {
-      router.push("/lender");
+  const handleContinue = async () => {
+    if (!selected) return;
+    setIsLoading(true);
+    try {
+      console.log("Setting role via server action...", selected);
+      const res = await setRole(selected);
+      console.log("Server action responded:", res);
+
+      console.log("Forcing session token refresh...");
+      // Wrap in a promise race just in case this also hangs
+      await Promise.race([
+        getToken({ skipCache: true }), 
+        new Promise(r => setTimeout(r, 2000))
+      ]);
+      console.log("Token check finished.");
+      
+      if (selected === "farmer") {
+        window.location.href = "/farmerplaceholder";
+      } else if (selected === "lender") {
+        window.location.href = "/lenderplaceholder";
+      }
+    } catch (error) {
+      console.error("Failed to update role:", error);
+      setIsLoading(false);
     }
   };
 
@@ -52,7 +75,7 @@ export default function RoleSelection() {
 
             <h3 className="text-2xl font-black text-white mb-3 uppercase tracking-tight">I am a Farmer</h3>
             <p className="text-slate-400 font-medium leading-relaxed">
-              Analyze your farm's risk, build a digital profile, and unlock access to specialized credit and insurance.
+              Analyze your farm&apos;s risk, build a digital profile, and unlock access to specialized credit and insurance.
             </p>
 
             {/* Checkmark */}
@@ -102,14 +125,14 @@ export default function RoleSelection() {
         <div className="flex justify-center">
           <button
             onClick={handleContinue}
-            disabled={!selected}
+            disabled={!selected || isLoading}
             className={`px-12 py-4 rounded-2xl font-black text-lg tracking-widest uppercase transition-all duration-300 shadow-xl ${
-              selected
+              selected && !isLoading
                 ? "bg-green-500 text-slate-950 hover:bg-green-400 hover:-translate-y-1 shadow-green-500/25 active:scale-95 cursor-pointer"
                 : "bg-slate-800 text-slate-500 cursor-not-allowed"
             }`}
           >
-            CONTINUE TO DASHBOARD
+            {isLoading ? "UPDATING..." : "CONTINUE TO DASHBOARD"}
           </button>
         </div>
       </div>
