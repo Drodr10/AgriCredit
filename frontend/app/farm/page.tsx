@@ -1,5 +1,6 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -25,6 +26,7 @@ const MACHINERY_TYPES = [
 
 export default function OnboardingFlow() {
   const router = useRouter();
+  const { isLoaded, isSignedIn, user } = useUser();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: "",
@@ -43,11 +45,14 @@ export default function OnboardingFlow() {
   const handleSubmit = async () => {
     try {
       // Use full URL to avoid any ambiguity, though CORS is now fixed.
-      const response = await fetch("http://localhost:8000/farmers/", {
+      const response = await fetch(`http://localhost:8000/users/me/farms?clerk_id=${user?.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
            ...formData,
+           clerk_id: user?.id || null,
+           email: user?.primaryEmailAddress?.emailAddress || null,
+           phone: user?.primaryPhoneNumber?.phoneNumber || null,
            national_id: formData.national_id || "TEMP-" + Math.random().toString(36).substr(2, 9)
         }),
       });

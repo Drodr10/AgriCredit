@@ -7,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import close_client
 from app.ml.model import load_models
-from app.routers import credit_applications, farmers
+from app.routers import credit_applications, farmers, users
 from app.routers.ml import analyze
 
 
@@ -33,6 +33,7 @@ app.add_middleware(
 )
 
 app.include_router(farmers.router)
+app.include_router(users.router)
 app.include_router(credit_applications.router)
 app.include_router(analyze.router)
 

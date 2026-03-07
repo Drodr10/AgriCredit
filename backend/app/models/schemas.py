@@ -23,10 +23,10 @@ class MongoBaseModel(BaseModel):
 
 class FarmerBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=200)
-    national_id: str = Field(..., min_length=1, max_length=50)
-    clerk_id: str | None = Field(default=None, max_length=255)
+    clerk_id: str | None = Field(default=None, max_length=100)
     phone: str | None = Field(default=None, max_length=20)
-    email: str | None = Field(default=None, max_length=255)
+    email: str | None = Field(default=None, max_length=100)
+    national_id: str | None = Field(default=None, max_length=50)
     location: str | None = Field(default=None, max_length=200)
     gps_coordinates: str | None = Field(default=None, max_length=100)
     farm_size_hectares: float | None = Field(default=None, ge=0)
@@ -45,7 +45,10 @@ class FarmerCreate(FarmerBase):
 
 class FarmerUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=200)
+    clerk_id: str | None = Field(default=None, max_length=100)
     phone: str | None = Field(default=None, max_length=20)
+    email: str | None = Field(default=None, max_length=100)
+    national_id: str | None = Field(default=None, max_length=50)
     location: str | None = Field(default=None, max_length=200)
     gps_coordinates: str | None = Field(default=None, max_length=100)
     farm_size_hectares: float | None = Field(default=None, ge=0)
@@ -73,22 +76,23 @@ class Farmer(FarmerBase):
 
 class UserBase(BaseModel):
     email: str = Field(..., max_length=255)
+    clerk_id: str = Field(..., max_length=100)
+    phone: str | None = Field(default=None, max_length=20)
     role: str = Field(default="farmer", max_length=50)
 
-
 class UserCreate(UserBase):
-    clerk_id: str = Field(..., max_length=255)
-
+    pass
 
 class UserInDB(MongoBaseModel, UserBase):
-    clerk_id: str
+    farms: list[dict[str, Any]] = Field(default_factory=list)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 class User(UserBase):
     id: str
-    clerk_id: str
+    farms: list[Farmer] = Field(default_factory=list)
     created_at: datetime
+    updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
 
