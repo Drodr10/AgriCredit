@@ -7,6 +7,7 @@ import {
   UserButton,
 } from "@clerk/nextjs";
 import "./globals.css";
+import { SyncUser } from "./components/SyncUser";
 
 export const metadata: Metadata = {
   title: "AgriCredit",
@@ -23,6 +24,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="antialiased">
         <ClerkProvider>
+          <SyncUser />
           <header className="flex items-center justify-between px-6 py-3 bg-white/80 backdrop-blur-md border-b border-green-200 sticky top-0 z-50 h-16">
             <span className="text-xl font-bold text-green-800 tracking-tight">
               AgriCredit

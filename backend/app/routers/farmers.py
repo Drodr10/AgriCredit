@@ -52,6 +52,11 @@ def create_farmer(payload: FarmerCreate) -> Any:
     return d
 
 
+@router.get("/me", response_model=Farmer)
+def get_current_farmer(current_user: dict[str, Any] = Depends(get_current_user)) -> Any:
+    return current_user
+
+
 @router.get("/{farmer_id}", response_model=Farmer)
 def get_farmer(farmer_id: str) -> Any:
     db = _get_db()
