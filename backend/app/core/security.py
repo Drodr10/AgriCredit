@@ -52,23 +52,10 @@ async def get_current_user(request: Request, db: Database = Depends(_get_db)) ->
     # 3. If not found, create a placeholder Farmer record (Upsert pattern)
     if not farmer_doc:
         try:
-            # Fetch user details from Clerk to populate the local profile
+            # We can optionally fetch more details from Clerk if we want the email
             clerk_user = await clerk.users.get(user_id=clerk_id)
-            
-            # Extract email (handles OAuth and email/pass)
-            email = "unknown@clerk.dev"
-            if clerk_user.email_addresses and len(clerk_user.email_addresses) > 0:
-                email = clerk_user.email_addresses[0].email_address
-                
-            # Try to construct a name from Clerk attributes if available
-            first_name = clerk_user.first_name or ""
-            last_name = clerk_user.last_name or ""
-            name = f"{first_name} {last_name}".strip()
-            
-            # Fallback if no name provided
-            if not name:
-                name = email.split("@")[0] if "@" in email else "New Farmer"
-
+            email = clerk_user.email_addresses[0].email_address if clerk_user.email_addresses else "unknown@clerk.dev"
+            name = email.split("@")[0] if "@" in email else "New Farmer"
         except Exception as e:
             print(f"Failed to fetch Clerk user details: {e}")
             email = "unknown@clerk.dev"
