@@ -36,6 +36,10 @@ def get_current_user(clerk_id: str, email: str | None = None):
         doc_dict = user_in_db.model_dump(by_alias=True, exclude={"id"})
         db.users.insert_one(doc_dict)
         user_doc = db.users.find_one({"clerk_id": clerk_id})
+    elif email and user_doc.get("email") == "pending@user.com":
+        # Update placeholder email with real one if provided
+        db.users.update_one({"clerk_id": clerk_id}, {"$set": {"email": email, "updated_at": datetime.now(timezone.utc)}})
+        user_doc = db.users.find_one({"clerk_id": clerk_id})
     
     d = doc_to_dict(user_doc)
     d["id"] = d.pop("_id", "")
@@ -78,9 +82,15 @@ def add_farm_to_user(clerk_id: str, payload: FarmerCreate):
     farm_dict["created_at"] = now
     farm_dict["updated_at"] = now
     
+    update_fields: dict[str, Any] = {"updated_at": now}
+    if payload.email and (not user_doc.get("email") or user_doc.get("email") == "pending@user.com"):
+        update_fields["email"] = payload.email
+    if payload.phone and not user_doc.get("phone"):
+        update_fields["phone"] = payload.phone
+
     db.users.update_one(
         {"clerk_id": clerk_id},
-        {"$push": {"farms": farm_dict}, "$set": {"updated_at": now}}
+        {"$push": {"farms": farm_dict}, "$set": update_fields}
     )
     
     return farm_dict

@@ -26,7 +26,7 @@ export default function Home() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
             <Link
-              href="/farm"
+              href="/role"
               className="relative inline-flex items-center justify-center rounded-xl bg-green-500 px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-green-500/30 hover:bg-green-400 hover:shadow-green-400/40 transition-all duration-300 group"
             >
               <span>Get Started</span>
