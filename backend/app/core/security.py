@@ -23,8 +23,8 @@ async def get_current_user(request: Request, db: Database = Depends(_get_db)) ->
     fetches user details from Clerk if needed, and ensures the user
     exists in our local MongoDB 'farmers' collection.
     """
-    # 1. Authenticate the request via Clerk SDK
-    request_state = await clerk.authenticate_request(
+    # 1. Authenticate the request via Clerk SDK (Sync call)
+    request_state = clerk.authenticate_request(
         request, 
         AuthenticateRequestOptions(
             secret_key=settings.clerk_secret_key
@@ -46,13 +46,12 @@ async def get_current_user(request: Request, db: Database = Depends(_get_db)) ->
         )
 
     # 2. Look for the user in our local 'farmers' database
-    # We use clerk_id to track them across logins
     farmer_doc = db.farmers.find_one({"clerk_id": clerk_id})
     
     # 3. If not found, create a placeholder Farmer record (Upsert pattern)
     if not farmer_doc:
         try:
-            # We can optionally fetch more details from Clerk if we want the email
+            # Fetch user details from Clerk
             clerk_user = await clerk.users.get(user_id=clerk_id)
             email = clerk_user.email_addresses[0].email_address if clerk_user.email_addresses else "unknown@clerk.dev"
             name = email.split("@")[0] if "@" in email else "New Farmer"
@@ -64,13 +63,12 @@ async def get_current_user(request: Request, db: Database = Depends(_get_db)) ->
         new_farmer = FarmerInDB(
             clerk_id=clerk_id,
             name=name,
-            national_id="PENDING", # Required by FarmerBase but unknown at sign-up
+            national_id="PENDING",
             primary_crop="Unknown",
-            contact_email=email
+            email=email
         )
         
         doc_dict = new_farmer.model_dump(by_alias=True, exclude={"id", "created_at", "updated_at"})
-        # Add timestamps explicitly to avoid pydantic issues on insert
         from datetime import datetime, timezone
         now = datetime.now(timezone.utc)
         doc_dict["created_at"] = now
