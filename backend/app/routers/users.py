@@ -103,14 +103,30 @@ def add_farm_to_user(clerk_id: str, payload: FarmerCreate):
 def update_user_role(clerk_id: str, payload: UserRoleUpdate):
     db = _get_db()
     user_doc = db.users.find_one({"clerk_id": clerk_id})
-    if not user_doc:
-        raise HTTPException(status_code=404, detail="User not found")
-    
     now = datetime.now(timezone.utc)
-    db.users.update_one(
-        {"clerk_id": clerk_id},
-        {"$set": {"role": payload.role, "updated_at": now}}
-    )
+    
+    if not user_doc:
+        if not payload.email:
+            raise HTTPException(status_code=400, detail="User not found and no email provided to create one")
+        # Initialize user if missing
+        user_in_db = UserInDB(
+            clerk_id=clerk_id,
+            email=payload.email,
+            role=payload.role,
+            created_at=now,
+            updated_at=now
+        )
+        doc_dict = user_in_db.model_dump(by_alias=True, exclude={"id"})
+        db.users.insert_one(doc_dict)
+    else:
+        update_fields = {"role": payload.role, "updated_at": now}
+        if payload.email and user_doc.get("email") == "pending@user.com":
+            update_fields["email"] = payload.email
+            
+        db.users.update_one(
+            {"clerk_id": clerk_id},
+            {"$set": update_fields}
+        )
     
     updated = db.users.find_one({"clerk_id": clerk_id})
     d = doc_to_dict(updated)

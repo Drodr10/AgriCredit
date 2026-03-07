@@ -82,6 +82,7 @@ class UserBase(BaseModel):
 
 class UserRoleUpdate(BaseModel):
     role: str = Field(..., max_length=50)
+    email: str | None = Field(default=None, max_length=255)
 
 class UserCreate(UserBase):
     pass
