@@ -31,7 +31,7 @@ interface SelectedState {
   category: string;
 }
 
-export default function IndiaMap() {
+export default function GlobeMap() {
   const [geoData, setGeoData] = useState<any>(null);
   const [worldGeoData, setWorldGeoData] = useState<any>(null);
   const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null);

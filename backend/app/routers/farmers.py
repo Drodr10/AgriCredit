@@ -14,7 +14,6 @@ from app.models.schemas import (
     FarmerUpdate,
     doc_to_dict,
 )
-
 router = APIRouter(prefix="/farmers", tags=["farmers"])
 
 
@@ -48,6 +47,11 @@ def create_farmer(payload: FarmerCreate) -> Any:
     d = doc_to_dict(created)
     d["id"] = d.pop("_id", "")
     return d
+
+
+@router.get("/me")
+def get_current_farmer() -> Any:
+    return {"message": "Development mode - auth disabled"}
 
 
 @router.get("/{farmer_id}", response_model=Farmer)

@@ -16,8 +16,7 @@ from app.models.schemas import (
     CreditApplicationUpdate,
     doc_to_dict,
 )
-
-router = APIRouter(prefix="/credit-applications", tags=["credit-applications"])
+router = APIRouter(prefix="/credit-applications", tags=["credit_applications"])
 
 
 def _get_db() -> Database:  # type: ignore[type-arg]
@@ -33,12 +32,16 @@ def _generate_mock_ai_results(amount: float) -> dict[str, Any]:
     prob = random.uniform(5, 25) if tier == "LOW" else random.uniform(26, 60) if tier == "MEDIUM" else random.uniform(61, 95)
     rate = 8.0 if tier == "LOW" else 12.5 if tier == "MEDIUM" else 18.0
     
+    bad_season_probability = prob
+    expected_loss = float(amount) * (prob / 100)
+    scenario_id_str = str(uuid.uuid4().hex)[:4].upper()
+
     return {
         "risk_tier": tier,
-        "bad_season_probability": round(prob, 1),
+        "bad_season_probability": round(bad_season_probability, 1),
         "suggested_interest_rate": rate,
-        "expected_loss": round(amount * (prob / 100), 2),
-        "scenario_id": f"SC-{datetime.now().year}-{uuid.uuid4().hex[:4].upper()}",
+        "expected_loss": round(expected_loss, 2),
+        "scenario_id": f"SC-{datetime.now().year}-{scenario_id_str}",
         
         "rainfall_forecast": "Rainfall forecast within normal range." if tier == "LOW" else "Slightly below average rainfall expected.",
         "yield_stability": "Historical yield variability is low." if tier == "LOW" else "Moderate yield fluctuations in recent years.",

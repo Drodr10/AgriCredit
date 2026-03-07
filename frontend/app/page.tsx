@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import IndiaMap from "./components/IndiaMap";
+import GlobeMap from "./components/GlobeMap";
 
 export default function Home() {
   return (
@@ -79,7 +79,7 @@ export default function Home() {
             </div>
           </div>
           <div className="h-[500px] lg:h-[600px]">
-            <IndiaMap />
+            <GlobeMap />
           </div>
         </div>
       </section>
