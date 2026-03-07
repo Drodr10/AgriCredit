@@ -14,8 +14,10 @@ from app.models.schemas import (
     FarmerUpdate,
     doc_to_dict,
 )
+from app.core.security import get_current_user
+from fastapi import Depends
 
-router = APIRouter(prefix="/farmers", tags=["farmers"])
+router = APIRouter(prefix="/farmers", tags=["farmers"], dependencies=[Depends(get_current_user)])
 
 
 def _get_db() -> Database:  # type: ignore[type-arg]

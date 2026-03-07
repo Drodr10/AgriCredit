@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 
 const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:8000";
 
@@ -10,6 +11,13 @@ async function proxyRequest(request: NextRequest): Promise<NextResponse> {
 
   const headers = new Headers(request.headers);
   headers.delete("host");
+  
+  // Inject Clerk Token
+  const { getToken } = await auth();
+  const token = await getToken();
+  if (token) {
+    headers.set("Authorization", `Bearer ${token}`);
+  }
 
   const body =
     request.method !== "GET" && request.method !== "HEAD"

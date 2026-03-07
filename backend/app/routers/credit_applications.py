@@ -16,8 +16,10 @@ from app.models.schemas import (
     CreditApplicationUpdate,
     doc_to_dict,
 )
+from app.core.security import get_current_user
+from fastapi import Depends
 
-router = APIRouter(prefix="/credit-applications", tags=["credit-applications"])
+router = APIRouter(prefix="/credit-applications", tags=["credit_applications"], dependencies=[Depends(get_current_user)])
 
 
 def _get_db() -> Database:  # type: ignore[type-arg]
