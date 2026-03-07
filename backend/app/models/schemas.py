@@ -78,7 +78,10 @@ class UserBase(BaseModel):
     email: str = Field(..., max_length=255)
     clerk_id: str = Field(..., max_length=100)
     phone: str | None = Field(default=None, max_length=20)
-    role: str = Field(default="farmer", max_length=50)
+    role: str | None = Field(default=None, max_length=50)
+
+class UserRoleUpdate(BaseModel):
+    role: str = Field(..., max_length=50)
 
 class UserCreate(UserBase):
     pass

@@ -1,7 +1,10 @@
 "use client";
 
-import GlobeMap from "../components/GlobeMap";
+import dynamic from "next/dynamic";
 
+const GlobeMap = dynamic(() => import("../components/GlobeMap"), {
+  ssr: false,
+});
 export default function MapPage() {
   return (
     <main className="h-[calc(100vh-4rem)] bg-slate-900 overflow-hidden relative">

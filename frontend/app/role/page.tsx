@@ -23,11 +23,11 @@ export default function RoleSelection() {
       console.log("Forcing session token refresh...");
       // Wrap in a promise race just in case this also hangs
       await Promise.race([
-        getToken({ skipCache: true }), 
+        getToken({ skipCache: true }),
         new Promise(r => setTimeout(r, 2000))
       ]);
       console.log("Token check finished.");
-      
+
       if (selected === "farmer") {
         window.location.href = "/farmerplaceholder";
       } else if (selected === "lender") {
@@ -58,16 +58,14 @@ export default function RoleSelection() {
           {/* Farmer Card */}
           <button
             onClick={() => setSelected("farmer")}
-            className={`group relative p-8 rounded-[2.5rem] border-2 transition-all duration-500 text-left overflow-hidden ${
-              selected === "farmer"
+            className={`group relative p-8 rounded-[2.5rem] border-2 transition-all duration-500 text-left overflow-hidden ${selected === "farmer"
                 ? "border-green-500 bg-green-500/5 shadow-2xl shadow-green-500/20 scale-[1.02]"
                 : "border-slate-800 bg-slate-900/30 hover:border-slate-700 hover:bg-slate-900/50"
-            }`}
+              }`}
           >
             {/* Visual Indicator */}
-            <div className={`h-16 w-16 mb-6 rounded-2xl flex items-center justify-center transition-all ${
-              selected === "farmer" ? "bg-green-500 text-slate-950" : "bg-slate-800 text-green-400"
-            }`}>
+            <div className={`h-16 w-16 mb-6 rounded-2xl flex items-center justify-center transition-all ${selected === "farmer" ? "bg-green-500 text-slate-950" : "bg-slate-800 text-green-400"
+              }`}>
               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
               </svg>
@@ -91,16 +89,14 @@ export default function RoleSelection() {
           {/* Lender Card */}
           <button
             onClick={() => setSelected("lender")}
-            className={`group relative p-8 rounded-[2.5rem] border-2 transition-all duration-500 text-left overflow-hidden ${
-              selected === "lender"
+            className={`group relative p-8 rounded-[2.5rem] border-2 transition-all duration-500 text-left overflow-hidden ${selected === "lender"
                 ? "border-green-500 bg-green-500/5 shadow-2xl shadow-green-500/20 scale-[1.02]"
                 : "border-slate-800 bg-slate-900/30 hover:border-slate-700 hover:bg-slate-900/50"
-            }`}
+              }`}
           >
             {/* Visual Indicator */}
-            <div className={`h-16 w-16 mb-6 rounded-2xl flex items-center justify-center transition-all ${
-              selected === "lender" ? "bg-green-500 text-slate-950" : "bg-slate-800 text-green-400"
-            }`}>
+            <div className={`h-16 w-16 mb-6 rounded-2xl flex items-center justify-center transition-all ${selected === "lender" ? "bg-green-500 text-slate-950" : "bg-slate-800 text-green-400"
+              }`}>
               <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -126,11 +122,10 @@ export default function RoleSelection() {
           <button
             onClick={handleContinue}
             disabled={!selected || isLoading}
-            className={`px-12 py-4 rounded-2xl font-black text-lg tracking-widest uppercase transition-all duration-300 shadow-xl ${
-              selected && !isLoading
+            className={`px-12 py-4 rounded-2xl font-black text-lg tracking-widest uppercase transition-all duration-300 shadow-xl ${selected && !isLoading
                 ? "bg-green-500 text-slate-950 hover:bg-green-400 hover:-translate-y-1 shadow-green-500/25 active:scale-95 cursor-pointer"
                 : "bg-slate-800 text-slate-500 cursor-not-allowed"
-            }`}
+              }`}
           >
             {isLoading ? "UPDATING..." : "CONTINUE TO DASHBOARD"}
           </button>

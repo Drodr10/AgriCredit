@@ -12,6 +12,7 @@ from app.models.schemas import (
     UserInDB,
     Farmer,
     FarmerCreate,
+    UserRoleUpdate,
     doc_to_dict,
 )
 
@@ -43,6 +44,9 @@ def get_current_user(clerk_id: str, email: str | None = None):
     
     d = doc_to_dict(user_doc)
     d["id"] = d.pop("_id", "")
+    # Ensure role is explicitly None if missing
+    if "role" not in d:
+        d["role"] = None
     return d
 
 @router.post("/", response_model=User, status_code=status.HTTP_201_CREATED)
@@ -94,3 +98,21 @@ def add_farm_to_user(clerk_id: str, payload: FarmerCreate):
     )
     
     return farm_dict
+
+@router.patch("/me/role", response_model=User)
+def update_user_role(clerk_id: str, payload: UserRoleUpdate):
+    db = _get_db()
+    user_doc = db.users.find_one({"clerk_id": clerk_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    now = datetime.now(timezone.utc)
+    db.users.update_one(
+        {"clerk_id": clerk_id},
+        {"$set": {"role": payload.role, "updated_at": now}}
+    )
+    
+    updated = db.users.find_one({"clerk_id": clerk_id})
+    d = doc_to_dict(updated)
+    d["id"] = d.pop("_id", "")
+    return d

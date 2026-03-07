@@ -1,8 +1,36 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 export default function Home() {
+  const { isLoaded, isSignedIn, user } = useUser();
+  const router = useRouter();
+
+  const handleGetStarted = async () => {
+    if (!isSignedIn) {
+      router.push("/sign-up");
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:8000/users/me?clerk_id=${user.id}`);
+      if (response.ok) {
+        const userData = await response.json();
+        if (userData.role) {
+          router.push("/dashboard");
+        } else {
+          router.push("/role");
+        }
+      } else {
+         router.push("/role");
+      }
+    } catch (error) {
+       router.push("/role");
+    }
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-900 to-green-950 overflow-hidden">
       {/* Hero Section */}
@@ -24,8 +52,8 @@ export default function Home() {
             conditions and assess agricultural risk in real time.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-            <Link
-              href="/role"
+            <button
+              onClick={handleGetStarted}
               className="relative inline-flex items-center justify-center rounded-xl bg-green-500 px-8 py-3.5 text-base font-bold text-white shadow-lg shadow-green-500/30 hover:bg-green-400 hover:shadow-green-400/40 transition-all duration-300 group"
             >
               <span>Get Started</span>
@@ -42,7 +70,7 @@ export default function Home() {
                   d="M13 7l5 5m0 0l-5 5m5-5H6"
                 />
               </svg>
-            </Link>
+            </button>
             <Link
               href="/map"
               className="inline-flex items-center justify-center rounded-xl border border-green-500/50 bg-green-950/30 px-8 py-3.5 text-base font-semibold text-green-400 hover:bg-green-900/50 hover:text-green-300 transition-all duration-300"

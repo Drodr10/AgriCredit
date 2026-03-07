@@ -61,9 +61,6 @@ export default function GlobeMap() {
       views: new GlobeView({ id: 'globe', resolution: 10 }),
       initialViewState: INITIAL_VIEW_STATE,
       controller: true,
-      parameters: {
-        cull: true,
-      },
       style: { width: '100%', height: '100%' },
       getTooltip: () => null,
     });
