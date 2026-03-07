@@ -22,7 +22,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(
     title=settings.app_title,
     version=settings.app_version,
-    lifespan=lifespan,
 )
 
 app.add_middleware(

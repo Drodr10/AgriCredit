@@ -26,8 +26,12 @@ class FarmerBase(BaseModel):
     national_id: str = Field(..., min_length=1, max_length=50)
     phone: str | None = Field(default=None, max_length=20)
     location: str | None = Field(default=None, max_length=200)
+    gps_coordinates: str | None = Field(default=None, max_length=100)
     farm_size_hectares: float | None = Field(default=None, ge=0)
     primary_crop: str | None = Field(default=None, max_length=100)
+    age: int | None = Field(default=None, ge=18, le=120)
+    experience_years: int | None = Field(default=None, ge=0)
+    irrigation_type: str | None = Field(default=None, max_length=100)
 
 
 class FarmerCreate(FarmerBase):
@@ -38,8 +42,12 @@ class FarmerUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=200)
     phone: str | None = Field(default=None, max_length=20)
     location: str | None = Field(default=None, max_length=200)
+    gps_coordinates: str | None = Field(default=None, max_length=100)
     farm_size_hectares: float | None = Field(default=None, ge=0)
     primary_crop: str | None = Field(default=None, max_length=100)
+    age: int | None = Field(default=None, ge=18, le=120)
+    experience_years: int | None = Field(default=None, ge=0)
+    irrigation_type: str | None = Field(default=None, max_length=100)
 
 
 class FarmerInDB(MongoBaseModel, FarmerBase):
@@ -57,9 +65,10 @@ class Farmer(FarmerBase):
 
 class CreditApplicationBase(BaseModel):
     farmer_id: str = Field(...)
+    crop_type: str = Field(..., max_length=100)
+    region: str = Field(..., max_length=200)
+    season: str = Field(..., max_length=100)
     amount_requested: float = Field(..., gt=0)
-    purpose: str = Field(..., min_length=1, max_length=500)
-    repayment_period_months: int = Field(..., ge=1, le=360)
 
 
 class CreditApplicationCreate(CreditApplicationBase):
@@ -76,6 +85,25 @@ class CreditApplicationInDB(MongoBaseModel, CreditApplicationBase):
     status: str = Field(default="pending")
     amount_approved: float | None = None
     notes: str | None = None
+    
+    # AI Results
+    risk_tier: str | None = None  # e.g., "LOW", "MEDIUM", "HIGH"
+    bad_season_probability: float | None = None  # 0 to 100
+    suggested_interest_rate: float | None = None
+    expected_loss: float | None = None
+    scenario_id: str | None = None
+    
+    # AI Reasoning
+    rainfall_forecast: str | None = None
+    yield_stability: str | None = None
+    price_volatility: str | None = None
+    model_confidence: str | None = None
+    
+    # Risk Drivers (percentage contribution)
+    rainfall_anomaly_weight: float | None = None
+    price_volatility_weight: float | None = None
+    extreme_events_weight: float | None = None
+
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -85,6 +113,22 @@ class CreditApplication(CreditApplicationBase):
     status: str
     amount_approved: float | None
     notes: str | None
+    
+    risk_tier: str | None
+    bad_season_probability: float | None
+    suggested_interest_rate: float | None
+    expected_loss: float | None
+    scenario_id: str | None
+    
+    rainfall_forecast: str | None
+    yield_stability: str | None
+    price_volatility: str | None
+    model_confidence: str | None
+    
+    rainfall_anomaly_weight: float | None
+    price_volatility_weight: float | None
+    extreme_events_weight: float | None
+
     created_at: datetime
     updated_at: datetime
 
