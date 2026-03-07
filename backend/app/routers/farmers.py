@@ -14,10 +14,7 @@ from app.models.schemas import (
     FarmerUpdate,
     doc_to_dict,
 )
-from app.core.security import get_current_user
-from fastapi import Depends
-
-router = APIRouter(prefix="/farmers", tags=["farmers"], dependencies=[Depends(get_current_user)])
+router = APIRouter(prefix="/farmers", tags=["farmers"])
 
 
 def _get_db() -> Database:  # type: ignore[type-arg]
@@ -52,9 +49,9 @@ def create_farmer(payload: FarmerCreate) -> Any:
     return d
 
 
-@router.get("/me", response_model=Farmer)
-def get_current_farmer(current_user: dict[str, Any] = Depends(get_current_user)) -> Any:
-    return current_user
+@router.get("/me")
+def get_current_farmer() -> Any:
+    return {"message": "Development mode - auth disabled"}
 
 
 @router.get("/{farmer_id}", response_model=Farmer)
