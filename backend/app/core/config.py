@@ -1,16 +1,16 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
+import os
 
 class Settings(BaseSettings):
-    mongodb_url: str = "mongodb+srv://db_user:iK4o0JYTAnSjKY9a@agrodb.32wlqc3.mongodb.net/?appName=AgroDB"
-    mongodb_db: str = "agricredit"
-    app_title: str = "AgriCredit API"
-    app_version: str = "0.1.0"
+    mongodb_url: str = os.getenv("MONGODB_URL")
+    mongodb_db: str = os.getenv("MONGODB_DB")
+    app_title: str = os.getenv("APP_TITLE")
+    app_version: str = os.getenv("APP_VERSION")
     
     clerk_secret_key: str = ""
     next_public_clerk_publishable_key: str = ""
 
-    model_config = SettingsConfigDict(env_file="/home/drodr10/Websites/AgriCredit/backend/.env", extra="ignore")
+    model_config = SettingsConfigDict(env_file="../../.env", extra="ignore")
 
 
 settings = Settings()
