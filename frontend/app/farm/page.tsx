@@ -79,6 +79,7 @@ export default function OnboardingFlow() {
     <div className="min-h-screen bg-gradient-to-b from-green-50/60 to-white text-slate-900 font-sans selection:bg-green-500/30">
       <div className="max-w-4xl mx-auto px-6 py-12">
         {/* Progress Navigation */}
+        {step !== 2 && (
         <div className="mb-16">
           <div className="flex justify-between items-center mb-4">
             <span className="text-xs font-black text-green-800 uppercase tracking-[0.2em]">Onboarding • Step {step} of 4</span>
@@ -91,6 +92,7 @@ export default function OnboardingFlow() {
             ></div>
           </div>
         </div>
+        )}
 
         <div className="relative">
           {step === 1 && (
@@ -112,48 +114,98 @@ export default function OnboardingFlow() {
           )}
 
           {step === 2 && (
-            <div className="animate-in fade-in slide-in-from-right-8 duration-700">
-              <h1 className="text-5xl font-black mb-4 tracking-tighter text-slate-900">Regional Context</h1>
-              <p className="text-slate-400 mb-12 text-xl max-w-xl font-medium">Geography shapes your risk profile. Pin your location and set your farm scale.</p>
-              
-              <div className="space-y-8">
-                <div className="group">
-                  <label className="block text-xs font-bold text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-800 transition-colors">State & District</label>
-                  <input 
-                    type="text" 
+            <LocationMap
+              coordinates={formData.gps_coordinates}
+              location={formData.location}
+              farmSizeHectares={formData.farm_size_hectares}
+              onCoordinatesChange={(coords: string) => setFormData({ ...formData, gps_coordinates: coords })}
+              onLocationChange={(location: string) => setFormData((prev) => ({ ...prev, location }))}
+            >
+              {/* Top-left panel: Title + State input */}
+              <div style={{
+                position: "absolute",
+                top: 24,
+                left: 24,
+                zIndex: 50,
+                width: 380,
+                maxWidth: "calc(100vw - 48px)",
+                pointerEvents: "auto",
+              }}>
+                <div style={{
+                  background: "rgba(255,255,255,0.88)",
+                  backdropFilter: "blur(16px)",
+                  borderRadius: 20,
+                  padding: "24px 28px",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
+                }}>
+                  <h1 className="text-3xl font-black tracking-tighter text-slate-900 mb-1">Regional Context</h1>
+                  <p className="text-slate-400 text-sm font-medium mb-6">Pin your location and set your farm scale.</p>
+
+                  <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">State & District</label>
+                  <input
+                    type="text"
                     placeholder="e.g. Punjab, Bathinda"
-                    className="w-full bg-white border border-gray-200 rounded-2xl px-8 py-5 text-2xl font-bold focus:border-green-800 focus:ring-4 focus:ring-green-50 outline-none transition-all placeholder:text-slate-200 text-slate-900 shadow-sm"
+                    className="w-full bg-white/80 border border-gray-200 rounded-xl px-5 py-3 text-lg font-bold focus:border-green-800 focus:ring-4 focus:ring-green-50 outline-none transition-all placeholder:text-slate-200 text-slate-900 shadow-sm"
                     value={formData.location}
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   />
                 </div>
-                <LocationMap
-                  coordinates={formData.gps_coordinates}
-                  onCoordinatesChange={(coords: string) => setFormData({ ...formData, gps_coordinates: coords })}
-                />
+              </div>
 
-                {/* Farm Scale Slider */}
-                <div className="text-center group mt-8">
-                   <label className="block text-xs font-bold text-slate-400 mb-6 uppercase tracking-widest group-focus-within:text-green-800 transition-colors">Farm Scale (Hectares)</label>
-                   <div className="text-8xl font-black text-green-800 mb-8 tabular-nums tracking-tighter drop-shadow-[0_0_30px_rgba(26,74,46,0.1)]">
-                      {formData.farm_size_hectares}
-                   </div>
-                   <input 
-                      type="range" 
-                      min="1" 
-                      max="500" 
-                      step="1"
-                      className="w-full h-4 bg-slate-100 rounded-full appearance-none cursor-pointer accent-green-800 ring-1 ring-gray-200"
-                      value={formData.farm_size_hectares}
-                      onChange={(e) => setFormData({ ...formData, farm_size_hectares: parseFloat(e.target.value) })}
-                   />
-                   <div className="flex justify-between text-xs font-bold text-slate-300 mt-4 uppercase tracking-tighter">
-                      <span>Small Scale (1)</span>
-                      <span>Industrial Scale (500)</span>
-                   </div>
+              {/* Bottom-center panel: Farm Scale + Nav buttons */}
+              <div style={{
+                position: "absolute",
+                bottom: 24,
+                left: "50%",
+                transform: "translateX(-50%)",
+                zIndex: 50,
+                width: 340,
+                maxWidth: "calc(100vw - 48px)",
+                pointerEvents: "auto",
+              }}>
+                <div style={{
+                  background: "rgba(255,255,255,0.88)",
+                  backdropFilter: "blur(16px)",
+                  borderRadius: 16,
+                  padding: "14px 20px",
+                  boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
+                }}>
+                  <label className="block text-[9px] font-bold text-slate-400 mb-1 uppercase tracking-widest text-center">Farm Scale (Hectares)</label>
+                  <div className="text-3xl font-black text-green-800 text-center mb-2 tabular-nums tracking-tighter">
+                    {formData.farm_size_hectares}
+                  </div>
+                  <input
+                    type="range"
+                    min="1"
+                    max="500"
+                    step="1"
+                    className="w-full h-2 bg-slate-100 rounded-full appearance-none cursor-pointer accent-green-800 ring-1 ring-gray-200"
+                    value={formData.farm_size_hectares}
+                    onChange={(e) => setFormData({ ...formData, farm_size_hectares: parseFloat(e.target.value) })}
+                  />
+                  <div className="flex justify-between text-[8px] font-bold text-slate-300 mt-1 uppercase tracking-tighter">
+                    <span>Small (1)</span>
+                    <span>Industrial (500)</span>
+                  </div>
+
+                  {/* Nav */}
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      onClick={prevStep}
+                      className="px-4 py-2 rounded-lg border border-gray-200 font-black uppercase text-[9px] tracking-widest hover:border-slate-900 transition-all text-slate-300 hover:text-slate-900 bg-white/80 shadow-sm"
+                    >
+                      Back
+                    </button>
+                    <button
+                      onClick={nextStep}
+                      className="flex-1 py-2 rounded-lg font-black uppercase text-[10px] tracking-[0.15em] bg-green-800 hover:bg-green-700 text-white shadow-lg hover:shadow-green-800/40 transition-all"
+                    >
+                      Continue
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
+            </LocationMap>
           )}
 
           {step === 3 && (
@@ -241,6 +293,7 @@ export default function OnboardingFlow() {
           )}
 
           {/* Dynamic Navigation */}
+          {step !== 2 && (
           <div className="mt-20 flex flex-col sm:flex-row gap-4">
             {step > 1 && (
               <button 
@@ -262,14 +315,17 @@ export default function OnboardingFlow() {
               {step === 4 ? "Submit Profile" : "Continue"}
             </button>
           </div>
+          )}
         </div>
 
+        {step !== 2 && (
         <div className="mt-12 flex items-center justify-center gap-2 text-slate-300">
            <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
            </svg>
            <span className="text-[10px] font-bold uppercase tracking-widest">Bank-Grade Encryption Enabled • GDPR Compliant</span>
         </div>
+        )}
       </div>
     </div>
   );
