@@ -109,15 +109,18 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, o
     }
   }, [coordinates]);
 
-  // Helper: zoom to fit the farm circle
+  // Helper: zoom to fit the farm circle, centered on the point
   const fitToFarmCircle = useCallback((lat: number, lng: number, hectares?: number) => {
     if (!hectares || hectares <= 0) return;
     try {
-      const radiusKm = Math.sqrt((hectares * 10000) / Math.PI) / 1000;
-      const circle = turf.circle([lng, lat], radiusKm, { steps: 32, units: "kilometers" });
-      const bbox = turf.bbox(circle) as [number, number, number, number];
-      mapRef.current?.fitBounds(bbox, {
-        padding: 80,
+      const radiusM = Math.sqrt((hectares * 10000) / Math.PI);
+      // Calculate zoom level: at zoom Z, 1 pixel ≈ (156543 * cos(lat)) / 2^Z meters
+      // We want the circle to fill ~250px radius on screen
+      const metersPerPixelTarget = radiusM / 250;
+      const zoom = Math.log2((156543 * Math.cos((lat * Math.PI) / 180)) / metersPerPixelTarget);
+      mapRef.current?.flyTo({
+        center: [lng, lat],
+        zoom: Math.min(zoom, 20),
         duration: 800,
         pitch: 60,
       });
@@ -293,22 +296,6 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, o
       );
     } catch (err) {
       console.log("Failed to add terrain:", err);
-    }
-
-    // Add sky / atmosphere
-    try {
-      map.addLayer({
-        id: "sky",
-        type: "sky" as string,
-        paint: {
-          "sky-type": "atmosphere",
-          "sky-atmosphere-sun": [0.0, 0.0],
-          "sky-atmosphere-sun-intensity": 15,
-        },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      } as any);
-    } catch (err) {
-      console.log("Sky layer not supported:", err);
     }
   };
 
