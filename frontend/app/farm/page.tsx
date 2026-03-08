@@ -9,9 +9,9 @@ import dynamic from "next/dynamic";
 const LocationMap = dynamic(() => import("@/app/components/LocationMap"), {
   ssr: false,
   loading: () => (
-    <div className="h-72 bg-white rounded-3xl border border-gray-200 border-dashed flex flex-col items-center justify-center text-slate-300 gap-4 shadow-sm">
-      <div className="w-6 h-6 border-2 border-green-800 border-t-transparent rounded-full animate-spin"></div>
-      <span className="font-bold uppercase tracking-widest text-xs">Loading Map...</span>
+    <div className="h-64 bg-gray-50 rounded border border-gray-200 border-dashed flex flex-col items-center justify-center text-gray-400 gap-3">
+      <div className="w-5 h-5 border-2 border-green-800 border-t-transparent rounded-full animate-spin"></div>
+      <span className="text-xs text-gray-500">Loading map...</span>
     </div>
   ),
 });
@@ -72,7 +72,7 @@ export default function OnboardingFlow() {
         }),
       });
       if (response.ok) {
-        router.push("/dashboard");
+    router.push("/dashboard");
       } else {
         const errData = await response.json();
         console.error("Server error:", errData);
@@ -111,26 +111,27 @@ export default function OnboardingFlow() {
         pointerEvents: "auto",
       }}>
         <div style={{
-          background: "rgba(255,255,255,0.88)",
-          backdropFilter: "blur(16px)",
-          WebkitBackdropFilter: "blur(16px)",
-          borderRadius: 20,
-          padding: "24px 28px",
-          boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
+          background: "rgba(255,255,255,0.96)",
+          backdropFilter: "blur(12px)",
+          WebkitBackdropFilter: "blur(12px)",
+          borderRadius: 4,
+          border: "1px solid #e5e7eb",
+          padding: "20px 24px",
+          boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
         }}>
           {/* Progress bar */}
-          <div style={{ marginBottom: 20 }}>
+          <div style={{ marginBottom: 16 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <span className="text-[10px] font-black text-green-800 uppercase tracking-[0.2em]">
+              <span className="text-xs font-semibold text-green-800">
                 Step {step} of 4
               </span>
-              <span className="text-[10px] font-bold text-slate-400">
+              <span className="text-xs text-gray-400">
                 {Math.round((step / 4) * 100)}%
               </span>
             </div>
-            <div className="w-full bg-slate-200 h-1 rounded-full overflow-hidden">
+            <div className="w-full bg-gray-200 h-1 overflow-hidden">
               <div
-                className="bg-green-800 h-full transition-all duration-700 ease-in-out shadow-[0_0_15px_rgba(26,74,46,0.2)]"
+                className="bg-green-800 h-full transition-all duration-500 ease-out"
                 style={{ width: `${(step / 4) * 100}%` }}
               ></div>
             </div>
@@ -139,17 +140,17 @@ export default function OnboardingFlow() {
           {/* ──── Step 1: Farm Identity ──── */}
           {step === 1 && (
             <div>
-              <h1 className="text-2xl font-black tracking-tighter text-slate-900 mb-1">Your Farm Identity</h1>
-              <p className="text-slate-400 text-sm font-medium mb-6">
+              <h1 className="text-lg font-bold tracking-tight text-gray-900 mb-1">Your Farm Identity</h1>
+              <p className="text-gray-500 text-sm mb-5">
                 Give your farm a name. This is how it will appear across your dashboard and reports.
               </p>
-              <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">
-                Farm Nickname
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                Farm Name
               </label>
               <input
                 type="text"
                 placeholder="e.g. Ludhiana Plot A"
-                className="w-full bg-white/80 border border-gray-200 rounded-xl px-5 py-3 text-lg font-bold focus:border-green-800 focus:ring-4 focus:ring-green-50 outline-none transition-all placeholder:text-slate-200 text-slate-900 shadow-sm"
+                className="w-full bg-white border border-gray-200 rounded px-4 py-2.5 text-sm focus:border-green-800 focus:ring-2 focus:ring-green-800/10 outline-none transition-colors placeholder:text-gray-300 text-gray-900"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
@@ -159,17 +160,17 @@ export default function OnboardingFlow() {
           {/* ──── Step 2: Regional Context ──── */}
           {step === 2 && (
             <div>
-              <h1 className="text-2xl font-black tracking-tighter text-slate-900 mb-1">Regional Context</h1>
-              <p className="text-slate-400 text-sm font-medium mb-6">
+              <h1 className="text-lg font-bold tracking-tight text-gray-900 mb-1">Regional Context</h1>
+              <p className="text-gray-500 text-sm mb-5">
                 Pin your location on the map and set your farm scale.
               </p>
-              <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">
                 State & District
               </label>
               <input
                 type="text"
                 placeholder="e.g. Punjab, Bathinda"
-                className="w-full bg-white/80 border border-gray-200 rounded-xl px-5 py-3 text-lg font-bold focus:border-green-800 focus:ring-4 focus:ring-green-50 outline-none transition-all placeholder:text-slate-200 text-slate-900 shadow-sm"
+                className="w-full bg-white border border-gray-200 rounded px-4 py-2.5 text-sm focus:border-green-800 focus:ring-2 focus:ring-green-800/10 outline-none transition-colors placeholder:text-gray-300 text-gray-900"
                 value={formData.location}
                 onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               />
@@ -179,33 +180,33 @@ export default function OnboardingFlow() {
           {/* ──── Step 3: Soil Composition ──── */}
           {step === 3 && (
             <div>
-              <h1 className="text-2xl font-black tracking-tighter text-slate-900 mb-1">Soil Composition</h1>
-              <p className="text-slate-400 text-sm font-medium mb-6">
-                Healthy crops start from the ground up. Which best describes your land?
+              <h1 className="text-lg font-bold tracking-tight text-gray-900 mb-1">Soil Composition</h1>
+              <p className="text-gray-500 text-sm mb-5">
+                Select the soil type that best describes your land.
               </p>
-              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {SOIL_TYPES.map((soil) => (
                   <button
                     key={soil.id}
                     onClick={() => setFormData({ ...formData, soil_category: soil.id })}
-                    className={`relative rounded-2xl overflow-hidden border transition-all group shadow-sm text-left ${
+                    className={`relative rounded overflow-hidden border-2 transition-colors text-left ${
                       formData.soil_category === soil.id
-                        ? "border-green-800 ring-4 ring-green-50 shadow-lg"
+                        ? "border-green-800"
                         : "border-gray-200 hover:border-green-700/40"
                     }`}
-                    style={{ height: 80 }}
+                    style={{ height: 72 }}
                   >
-                    <Image src={soil.image} alt={soil.name} fill className="object-cover object-left scale-125 transition-transform group-hover:scale-150 duration-700 opacity-70" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-white via-white/60 to-transparent"></div>
-                    <div className="absolute inset-0 flex items-center px-5">
+                    <Image src={soil.image} alt={soil.name} fill className="object-cover object-center opacity-50" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-white/40"></div>
+                    <div className="absolute inset-0 flex items-center px-4">
                       <div>
-                        <h3 className="text-base font-black tracking-tighter text-slate-900">{soil.name}</h3>
-                        <p className="text-slate-500 text-[11px] font-bold uppercase tracking-wider">{soil.desc}</p>
+                        <h3 className="text-sm font-semibold text-gray-900">{soil.name}</h3>
+                        <p className="text-gray-500 text-xs">{soil.desc}</p>
                       </div>
                       {formData.soil_category === soil.id && (
-                        <div className="ml-auto">
-                          <svg className="w-6 h-6 text-green-800" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        <div className="ml-auto w-5 h-5 bg-green-800 rounded-full flex items-center justify-center flex-shrink-0">
+                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
                       )}
@@ -219,38 +220,38 @@ export default function OnboardingFlow() {
           {/* ──── Step 4: Tools & Tactics ──── */}
           {step === 4 && (
             <div>
-              <h1 className="text-2xl font-black tracking-tighter text-slate-900 mb-1">Tools & Tactics</h1>
-              <p className="text-slate-400 text-sm font-medium mb-5">
-                Lenders require infrastructure data to assess operational efficiency.
+              <h1 className="text-lg font-bold tracking-tight text-gray-900 mb-1">Tools & Infrastructure</h1>
+              <p className="text-gray-500 text-sm mb-5">
+                Infrastructure data helps assess operational capacity.
               </p>
 
               {/* Irrigation */}
-              <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-3 border-b border-gray-200/60 pb-1">
-                Irrigation Strategy
+              <h3 className="text-sm font-medium text-gray-700 mb-3">
+                Irrigation Method
               </h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6, marginBottom: 16 }}>
                 {IRRIGATION_TYPES.map((type) => (
                   <button
                     key={type.id}
                     onClick={() => setFormData({ ...formData, irrigation_type: type.id })}
-                    className={`relative rounded-2xl overflow-hidden border transition-all group shadow-sm text-left ${
+                    className={`relative rounded overflow-hidden border-2 transition-colors text-left ${
                       formData.irrigation_type === type.id
-                        ? "border-green-800 ring-4 ring-green-50 shadow-lg"
+                        ? "border-green-800"
                         : "border-gray-200 hover:border-green-700/40"
                     }`}
-                    style={{ height: 64 }}
+                    style={{ height: 56 }}
                   >
-                    <Image src={type.image} alt={type.name} fill className="object-cover object-left scale-125 transition-transform group-hover:scale-150 duration-700 opacity-60" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-white via-white/60 to-transparent"></div>
-                    <div className="absolute inset-0 flex items-center px-5">
+                    <Image src={type.image} alt={type.name} fill className="object-cover object-center opacity-40" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-white/40"></div>
+                    <div className="absolute inset-0 flex items-center px-4">
                       <div>
-                        <span className="text-base font-black tracking-tighter text-slate-900">{type.name}</span>
-                        <span className="text-slate-400 text-[10px] font-bold ml-2">{type.desc}</span>
+                        <span className="text-sm font-semibold text-gray-900">{type.name}</span>
+                        <span className="text-gray-500 text-xs ml-2">{type.desc}</span>
                       </div>
                       {formData.irrigation_type === type.id && (
-                        <div className="ml-auto">
-                          <svg className="w-5 h-5 text-green-800" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        <div className="ml-auto w-5 h-5 bg-green-800 rounded-full flex items-center justify-center flex-shrink-0">
+                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
                       )}
@@ -260,32 +261,32 @@ export default function OnboardingFlow() {
               </div>
 
               {/* Machinery */}
-              <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-3 border-b border-gray-200/60 pb-1">
-                Machinery & Labor
+              <h3 className="text-sm font-medium text-gray-700 mb-3">
+                Machinery
               </h3>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
                 {MACHINERY_TYPES.map((type) => (
                   <button
                     key={type.id}
                     onClick={() => setFormData({ ...formData, machinery_type: type.id })}
-                    className={`relative rounded-2xl overflow-hidden border transition-all group shadow-sm text-left ${
+                    className={`relative rounded overflow-hidden border-2 transition-colors text-left ${
                       formData.machinery_type === type.id
-                        ? "border-green-800 ring-4 ring-green-50 shadow-lg"
+                        ? "border-green-800"
                         : "border-gray-200 hover:border-green-700/40"
                     }`}
-                    style={{ height: 64 }}
+                    style={{ height: 56 }}
                   >
-                    <Image src={type.image} alt={type.name} fill className="object-cover object-left scale-125 transition-transform group-hover:scale-150 duration-700 opacity-60" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-white via-white/60 to-transparent"></div>
-                    <div className="absolute inset-0 flex items-center px-5">
+                    <Image src={type.image} alt={type.name} fill className="object-cover object-center opacity-40" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-white/40"></div>
+                    <div className="absolute inset-0 flex items-center px-4">
                       <div>
-                        <span className="text-base font-black tracking-tighter text-slate-900">{type.name}</span>
-                        <span className="text-slate-400 text-[10px] font-bold ml-2">{type.desc}</span>
+                        <span className="text-sm font-semibold text-gray-900">{type.name}</span>
+                        <span className="text-gray-500 text-xs ml-2">{type.desc}</span>
                       </div>
                       {formData.machinery_type === type.id && (
-                        <div className="ml-auto">
-                          <svg className="w-5 h-5 text-green-800" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        <div className="ml-auto w-5 h-5 bg-green-800 rounded-full flex items-center justify-center flex-shrink-0">
+                          <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
                       )}
@@ -301,7 +302,7 @@ export default function OnboardingFlow() {
             {step > 1 && (
               <button
                 onClick={prevStep}
-                className="px-4 py-2.5 rounded-lg border border-gray-200 font-black uppercase text-[9px] tracking-widest hover:border-slate-900 transition-all text-slate-300 hover:text-slate-900 bg-white/80 shadow-sm"
+                className="px-4 py-2.5 rounded border border-gray-200 text-sm font-medium hover:border-gray-900 transition-colors text-gray-400 hover:text-gray-900 bg-white"
               >
                 Back
               </button>
@@ -309,23 +310,22 @@ export default function OnboardingFlow() {
             <button
               onClick={step === 4 ? handleSubmit : nextStep}
               disabled={!canContinue()}
-              className={`flex-1 py-2.5 rounded-lg font-black uppercase text-[10px] tracking-[0.15em] transition-all shadow-lg ${
+              className={`flex-1 py-2.5 rounded text-sm font-semibold transition-colors ${
                 !canContinue()
-                  ? "bg-slate-100 text-slate-300 cursor-not-allowed"
-                  : "bg-green-800 hover:bg-green-700 text-white hover:shadow-green-800/40"
+                  ? "bg-gray-100 text-gray-300 cursor-not-allowed"
+                  : "bg-green-800 hover:bg-green-700 text-white"
               }`}
             >
               {step === 4 ? "Submit Profile" : "Continue"}
             </button>
           </div>
 
-          {/* Encryption badge */}
           <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-            <svg className="w-3 h-3 text-slate-300" fill="currentColor" viewBox="0 0 20 20">
+            <svg className="w-3 h-3 text-gray-300" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
             </svg>
-            <span className="text-[8px] font-bold text-slate-300 uppercase tracking-widest">
-              Bank-Grade Encryption • GDPR
+            <span className="text-[10px] text-gray-400">
+              Bank-Grade Encryption
             </span>
           </div>
         </div>
@@ -344,17 +344,18 @@ export default function OnboardingFlow() {
           pointerEvents: "auto",
         }}>
           <div style={{
-            background: "rgba(255,255,255,0.88)",
-            backdropFilter: "blur(16px)",
-            WebkitBackdropFilter: "blur(16px)",
-            borderRadius: 16,
+            background: "rgba(255,255,255,0.96)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            borderRadius: 4,
+            border: "1px solid #e5e7eb",
             padding: "14px 20px",
-            boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
           }}>
-            <label className="block text-[9px] font-bold text-slate-400 mb-1 uppercase tracking-widest text-center">
+            <label className="block text-sm font-medium text-gray-700 mb-1 text-center">
               Farm Scale (Hectares)
             </label>
-            <div className="text-3xl font-black text-green-800 text-center mb-2 tabular-nums tracking-tighter">
+            <div className="text-2xl font-bold text-green-800 text-center mb-2 tabular-nums">
               {formData.farm_size_hectares}
             </div>
             <input
@@ -362,13 +363,13 @@ export default function OnboardingFlow() {
               min="1"
               max="500"
               step="1"
-              className="w-full h-2 bg-slate-100 rounded-full appearance-none cursor-pointer accent-green-800 ring-1 ring-gray-200"
+              className="w-full h-1.5 bg-gray-200 rounded-full appearance-none cursor-pointer accent-green-800"
               value={formData.farm_size_hectares}
               onChange={(e) => setFormData({ ...formData, farm_size_hectares: parseFloat(e.target.value) })}
             />
-            <div className="flex justify-between text-[8px] font-bold text-slate-300 mt-1 uppercase tracking-tighter">
-              <span>Small (1)</span>
-              <span>Industrial (500)</span>
+            <div className="flex justify-between text-xs text-gray-400 mt-1">
+              <span>1 ha</span>
+              <span>500 ha</span>
             </div>
           </div>
         </div>

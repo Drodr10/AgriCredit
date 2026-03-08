@@ -79,58 +79,58 @@ function FarmerView({ farms, setUserData, clerkId }: { farms: Farm[], setUserDat
       <div className="max-w-7xl mx-auto">
         <header className="flex justify-between items-end mb-12 border-b border-gray-100 pb-8">
           <div>
-            <h1 className="text-4xl font-black tracking-tighter mb-2 uppercase bg-gradient-to-r from-[#1a4a2e] to-[#d4a017] bg-clip-text text-transparent">
-              Farmer <span className="italic">Portfolio</span>
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-1">
+              Farmer Portfolio
             </h1>
-            <p className="text-slate-400 font-medium font-mono uppercase tracking-[0.2em]">Monitoring {farms.length} active farm profiles</p>
+            <p className="text-sm text-gray-500">Monitoring {farms.length} active farm profile{farms.length !== 1 ? "s" : ""}</p>
           </div>
           <div className="flex items-center gap-3">
             {farms.length > 0 && (
               <>
                 <Link 
                   href="/reports" 
-                  className="group flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-900 font-black px-6 py-3 rounded-xl transition-all border border-gray-200 shadow-sm hover:-translate-y-1"
+                  className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold text-sm px-5 py-2.5 rounded border border-gray-200 transition-colors"
                 >
-                  <svg className="w-5 h-5 text-green-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-green-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  ALL REPORTS
+                  All Reports
                 </Link>
                 <Link 
                   href="/apply" 
-                  className="group flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-900 font-black px-6 py-3 rounded-xl transition-all border border-gray-200 shadow-sm hover:-translate-y-1"
+                  className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold text-sm px-5 py-2.5 rounded border border-gray-200 transition-colors"
                 >
-                  <svg className="w-5 h-5 text-green-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 text-green-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  APPLY FOR CREDIT
+                  Apply for Credit
                 </Link>
               </>
             )}
 
             <Link 
               href="/farm" 
-              className="group flex items-center gap-2 bg-green-800 hover:bg-green-700 text-white font-black px-6 py-3 rounded-xl transition-all hover:-translate-y-1 shadow-xl shadow-green-800/20"
+              className="flex items-center gap-2 bg-green-800 hover:bg-green-700 text-white font-semibold text-sm px-5 py-2.5 rounded transition-colors"
             >
-              <svg className="w-5 h-5 transition-transform group-hover:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              ADD NEW FARM
+              Add New Farm
             </Link>
           </div>
         </header>
 
         {farms.length === 0 ? (
-          <div className="bg-white/50 border-2 border-dashed border-gray-200 rounded-[3rem] p-24 text-center">
-            <div className="bg-green-50 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 ring-1 ring-green-100">
-               <svg className="w-10 h-10 text-green-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <div className="bg-white border border-dashed border-gray-200 rounded p-16 sm:p-24 text-center">
+            <div className="bg-green-50 w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-6">
+               <svg className="w-8 h-8 text-green-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 002 2h1.5a2.5 2.5 0 012.5 2.5v.5m-1.5 1.5l1.5 1.5m-7.493 2.5a2 2 0 110-4 2 2 0 010 4z" />
                </svg>
             </div>
-            <h2 className="text-3xl font-bold mb-4 text-slate-900">No Farms Registered</h2>
-            <p className="text-slate-400 mb-10 max-w-sm mx-auto text-lg font-medium uppercase tracking-tight">Onboard your first farm to unlock specialized credit analysis.</p>
-            <Link href="/farm" className="inline-block bg-white hover:bg-slate-50 text-slate-900 font-black py-4 px-10 rounded-2xl transition-all border border-gray-200 uppercase tracking-widest shadow-sm">
-               START ONBOARDING
+            <h2 className="text-xl font-bold mb-2 text-gray-900">No Farms Registered</h2>
+            <p className="text-sm text-gray-500 mb-8 max-w-sm mx-auto">Onboard your first farm to unlock specialized credit analysis.</p>
+            <Link href="/farm" className="inline-block bg-green-800 hover:bg-green-700 text-white font-semibold text-sm py-2.5 px-6 rounded transition-colors">
+               Start Onboarding
             </Link>
           </div>
         ) : (
@@ -138,7 +138,7 @@ function FarmerView({ farms, setUserData, clerkId }: { farms: Farm[], setUserDat
             {farms.map((farm) => (
               <div 
                 key={farm.id} 
-                className="group relative bg-white rounded-[2.5rem] border border-gray-200 p-8 hover:border-green-700/40 transition-all hover:bg-slate-50 shadow-xl shadow-slate-200/50 overflow-hidden flex flex-col"
+                className="group relative bg-white rounded border border-gray-200 p-6 hover:border-green-700/40 transition-colors overflow-hidden flex flex-col"
               >
                 <div className="absolute top-0 right-0 p-8 opacity-5 transition-opacity group-hover:opacity-10 translate-x-4 -translate-y-4 text-green-800">
                    <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 20 20">
@@ -147,46 +147,46 @@ function FarmerView({ farms, setUserData, clerkId }: { farms: Farm[], setUserDat
                 </div>
                 
                 <div className="flex justify-between items-start mb-6 text-green-800">
-                  <div className="h-14 w-14 bg-green-50 rounded-2xl flex items-center justify-center ring-1 ring-green-100">
-                     <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <div className="h-10 w-10 bg-green-50 rounded-lg flex items-center justify-center">
+                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                      </svg>
                   </div>
-                  <span className="text-[10px] font-black uppercase tracking-widest bg-gray-50 px-3 py-1 rounded-full border border-gray-200 text-gray-400">Verified Profile</span>
+                  <span className="text-[10px] font-semibold uppercase tracking-wider bg-green-50 text-green-800 px-2 py-0.5 rounded">Active</span>
                 </div>
 
                 <Link href={`/farm/edit?id=${farm.id}`} className="block group/title">
-                  <h3 className="text-2xl font-black mb-1 group-hover/title:text-green-800 transition-colors uppercase tracking-tight text-slate-900">{farm.name}</h3>
-                  <p className="text-slate-400 text-sm font-bold uppercase tracking-widest mb-6">{farm.location}</p>
+                  <h3 className="text-base font-semibold mb-0.5 group-hover/title:text-green-800 transition-colors text-gray-900">{farm.name}</h3>
+                  <p className="text-gray-500 text-sm mb-4">{farm.location}</p>
                 </Link>
 
                 <div className="grid grid-cols-2 gap-4 mt-auto">
-                   <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                      <span className="block text-[10px] font-black text-slate-400 uppercase mb-1">Scale</span>
-                      <span className="text-lg font-bold text-slate-900">{farm.farm_size_hectares} HA</span>
+                   <div className="bg-gray-50 p-3 rounded border border-gray-100">
+                      <span className="block text-[10px] font-medium text-gray-500 uppercase mb-0.5">Scale</span>
+                      <span className="text-sm font-semibold text-gray-900">{farm.farm_size_hectares} ha</span>
                    </div>
-                   <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                      <span className="block text-[10px] font-black text-slate-400 uppercase mb-1">Soil Type</span>
-                      <span className="text-lg font-bold text-slate-900 capitalize">{farm.soil_category}</span>
+                   <div className="bg-gray-50 p-3 rounded border border-gray-100">
+                      <span className="block text-[10px] font-medium text-gray-500 uppercase mb-0.5">Soil Type</span>
+                      <span className="text-sm font-semibold text-gray-900 capitalize">{farm.soil_category}</span>
                    </div>
                 </div>
 
-                <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
+                <div className="mt-4 pt-4 border-t border-gray-100 flex items-center justify-between">
                    <div className="flex items-center gap-4">
                      <Link 
                        href={`/apply?farmId=${farm.id}`}
-                       className="text-xs font-black text-slate-900 hover:text-green-800 transition-colors uppercase flex items-center gap-1"
+                       className="text-xs font-semibold text-green-800 hover:text-green-700 transition-colors flex items-center gap-1"
                      >
-                       APPLY FOR CREDIT
+                       Apply for Credit
                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                        </svg>
                      </Link>
                      <Link 
                        href={`/report/${farm.id}`}
-                       className="text-xs font-black text-slate-400 hover:text-green-800 transition-colors uppercase flex items-center gap-1"
+                       className="text-xs font-medium text-gray-500 hover:text-gray-900 transition-colors"
                      >
-                       VIEW REPORTS
+                       View Reports
                      </Link>
                    </div>
                    <div className="flex items-center gap-2">
