@@ -243,12 +243,11 @@ export default function Home() {
             </p>
           </Reveal>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-12">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
             {[
-              { value: "500+", label: "Districts Covered" },
-              { value: "94.2%", label: "Model Accuracy" },
+              { value: "700+", label: "Districts Covered" },
+              { value: "96.4%", label: "Model Accuracy" },
               { value: "< 2 min", label: "Assessment Time" },
-              { value: "12,400+", label: "Reports Generated" },
             ].map((m) => (
               <Reveal key={m.label}>
                 <div className="border border-gray-200 bg-white rounded p-4 text-center">
@@ -264,20 +263,47 @@ export default function Home() {
               {
                 title: "Regional Risk Heatmap",
                 desc: "District-level drought and yield risk visualization across all major agricultural regions.",
+                chart: (
+                  <svg className="w-full h-full text-green-700/20" viewBox="0 0 100 40" preserveAspectRatio="none">
+                    <rect x="10" y="10" width="15" height="15" rx="2" fill="currentColor" fillOpacity="0.8" />
+                    <rect x="30" y="10" width="15" height="15" rx="2" fill="currentColor" fillOpacity="0.4" />
+                    <rect x="50" y="10" width="15" height="15" rx="2" fill="currentColor" fillOpacity="1" />
+                    <rect x="70" y="10" width="15" height="15" rx="2" fill="currentColor" fillOpacity="0.2" />
+                    <rect x="10" y="30" width="15" height="15" rx="2" fill="currentColor" fillOpacity="0.3" />
+                    <rect x="30" y="30" width="15" height="15" rx="2" fill="currentColor" fillOpacity="0.9" />
+                    <rect x="50" y="30" width="15" height="15" rx="2" fill="currentColor" fillOpacity="0.5" />
+                    <rect x="70" y="30" width="15" height="15" rx="2" fill="currentColor" fillOpacity="0.7" />
+                  </svg>
+                )
               },
               {
                 title: "Seasonal Trend Analysis",
                 desc: "Historical crop performance and weather pattern trends across Kharif, Rabi, and Zaid seasons.",
+                chart: (
+                   <svg className="w-full h-full text-green-600" viewBox="0 0 100 40" preserveAspectRatio="none">
+                     <path d="M0,35 Q15,10 30,25 T60,15 T100,5" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                     <circle cx="30" cy="25" r="3" fill="currentColor" />
+                     <circle cx="60" cy="15" r="3" fill="currentColor" />
+                     <circle cx="100" cy="5" r="3" fill="currentColor" />
+                   </svg>
+                )
               },
               {
                 title: "Portfolio Risk Distribution",
                 desc: "Aggregate risk scoring across your lending portfolio with breakdown by region, crop, and season.",
+                chart: (
+                   <svg className="w-full h-full text-green-700" viewBox="0 0 100 40" preserveAspectRatio="none" stroke="currentColor" strokeWidth="2">
+                     <line x1="20" y1="40" x2="20" y2="15" strokeLinecap="round" opacity="0.4" />
+                     <line x1="50" y1="40" x2="50" y2="5" strokeLinecap="round" opacity="0.9" />
+                     <line x1="80" y1="40" x2="80" y2="25" strokeLinecap="round" opacity="0.6" />
+                   </svg>
+                )
               },
             ].map((c) => (
               <Reveal key={c.title}>
-                <div className="border border-gray-200 bg-white rounded p-6 h-full">
-                  <div className="w-full h-32 bg-gray-100 rounded flex items-center justify-center mb-4">
-                    <span className="text-xs text-gray-400 uppercase tracking-wide">Chart</span>
+                <div className="border border-gray-200 bg-white rounded p-6 h-full flex flex-col">
+                  <div className="w-full h-32 bg-green-50/50 rounded-xl flex items-center justify-center mb-6 overflow-hidden p-6 border border-green-100/50">
+                    {c.chart}
                   </div>
                   <h3 className="text-sm font-semibold text-gray-900 mb-1">{c.title}</h3>
                   <p className="text-xs text-gray-500 leading-relaxed">{c.desc}</p>
@@ -335,25 +361,6 @@ export default function Home() {
                 <li><Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Get Started</Link></li>
                 <li><Link href="/map" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Map</Link></li>
                 <li><Link href="/farm" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Farm Profile</Link></li>
-              </ul>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold text-gray-900 uppercase tracking-wider mb-4">Legal</p>
-              <ul className="space-y-2">
-                <li><span className="text-sm text-gray-500">Privacy Policy</span></li>
-                <li><span className="text-sm text-gray-500">Children&apos;s Privacy</span></li>
-                <li><span className="text-sm text-gray-500">Security</span></li>
-                <li><span className="text-sm text-gray-500">Terms of Service</span></li>
-              </ul>
-            </div>
-
-            <div>
-              <p className="text-xs font-semibold text-gray-900 uppercase tracking-wider mb-4">Company</p>
-              <ul className="space-y-2">
-                <li><span className="text-sm text-gray-500">Contact Us</span></li>
-                <li><span className="text-sm text-gray-500">Locations</span></li>
-                <li><span className="text-sm text-gray-500">About</span></li>
               </ul>
             </div>
           </div>

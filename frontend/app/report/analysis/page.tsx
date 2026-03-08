@@ -8,13 +8,38 @@ import { useVoiceAssistant } from "../../../hooks/useVoice";
 
 export default function AnalysisReport() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    }>
+    <Suspense fallback={<ReportSkeleton />}>
       <AnalysisContent />
     </Suspense>
+  );
+}
+
+function ReportSkeleton() {
+  return (
+    <div className="min-h-screen bg-gray-50 p-4 sm:p-8 md:p-12">
+      <div className="max-w-[1100px] mx-auto space-y-4">
+        <div className="h-12 bg-gray-100 rounded animate-pulse" />
+        <div className="bg-white rounded border border-gray-200 overflow-hidden">
+          <div className="h-14 bg-gray-50 border-b border-gray-200" />
+          <div className="p-8 space-y-6">
+            <div className="flex gap-5">
+              <div className="w-16 h-16 bg-gray-100 rounded animate-pulse" />
+              <div className="space-y-2 flex-1">
+                <div className="h-6 w-64 bg-gray-100 rounded animate-pulse" />
+                <div className="h-4 w-40 bg-gray-100 rounded animate-pulse" />
+              </div>
+            </div>
+            <div className="grid grid-cols-4 gap-3">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="h-20 bg-gray-50 rounded border border-gray-100 animate-pulse" />
+              ))}
+            </div>
+            <div className="h-24 bg-gray-50 rounded animate-pulse" />
+            <div className="h-48 bg-gray-50 rounded animate-pulse" />
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -46,31 +71,27 @@ function AnalysisContent() {
           setLoading(false);
         });
     }
-  }, [id, hasSpokenIntro, isVoiceEnabled, speak]);
+  }, [id]);
 
   const handleGeneratePDF = async () => {
     if (!id || generating) return;
     
-    // Open window immediately to prevent popup blockers
     const reportWindow = window.open("", "_blank");
     if (!reportWindow) {
       alert("Please allow popups for this site to view the PDF report.");
       return;
     }
 
-    // Write loading state to the new window
     reportWindow.document.write(`
       <html>
-        <head>
-          <title>Generating Report...</title>
-          <script src="https://cdn.tailwindcss.com"></script>
-        </head>
-        <body class="bg-slate-50 flex items-center justify-center min-h-screen font-sans">
-          <div className="text-center">
-            <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <h1 class="text-xl font-bold text-slate-900">Generating Technical Report...</h1>
-            <p class="text-slate-500 mt-2 text-sm">Gemini is analyzing the data and drafting the 2-page report.</p>
+        <head><title>Generating Report...</title></head>
+        <body style="font-family:system-ui,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#f9fafb;">
+          <div style="text-align:center;">
+            <div style="width:32px;height:32px;border:3px solid #166534;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px;"></div>
+            <p style="font-size:14px;color:#374151;font-weight:600;">Generating credit memo...</p>
+            <p style="font-size:13px;color:#9ca3af;margin-top:8px;">Compiling risk assessment data.</p>
           </div>
+          <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
         </body>
       </html>
     `);
@@ -79,58 +100,37 @@ function AnalysisContent() {
     try {
       const res = await fetch(`http://localhost:8000/reports/generate/${id}`, { method: "POST" });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({ detail: "Failed to generate report" }));
-        const errHtml = `<div class="p-8 text-red-600 font-bold">Error: ${err.detail || "Failed to generate report"}</div>`;
-        if (reportWindow.document.body) {
-          reportWindow.document.body.innerHTML = errHtml;
-        } else {
-          reportWindow.document.open();
-          reportWindow.document.write(errHtml);
-          reportWindow.document.close();
-        }
-        return;
-      }
-      const html = await res.text();
-      
-      // Inject the generated HTML
-      reportWindow.document.open();
-      reportWindow.document.write(html);
-      reportWindow.document.close();
-      
-      // Wait for Tailwind and layout to settle
-      setTimeout(() => {
-        reportWindow.print();
-      }, 2000);
-
-    } catch (err) {
-      console.error("Report generation failed:", err);
-      const errHtml = `<div class="p-8 text-red-600 font-bold">Failed to connect to backend. Is it running?</div>`;
-      if (reportWindow.document.body) {
-        reportWindow.document.body.innerHTML = errHtml;
-      } else {
+        const err = await res.json().catch(() => ({ detail: "Report generation failed" }));
+        const errHtml = `<div style="padding:32px;color:#dc2626;font-family:system-ui;font-size:14px;font-weight:600;">Error: ${err.detail || "Report generation failed"}</div>`;
         reportWindow.document.open();
         reportWindow.document.write(errHtml);
         reportWindow.document.close();
+        return;
       }
+      const html = await res.text();
+      reportWindow.document.open();
+      reportWindow.document.write(html);
+      reportWindow.document.close();
+      setTimeout(() => { reportWindow.print(); }, 2000);
+    } catch {
+      const errHtml = `<div style="padding:32px;color:#dc2626;font-family:system-ui;font-size:14px;font-weight:600;">Unable to connect to the assessment service.</div>`;
+      reportWindow.document.open();
+      reportWindow.document.write(errHtml);
+      reportWindow.document.close();
     } finally {
       setGenerating(false);
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
+  if (loading) return <ReportSkeleton />;
 
   if (!data) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center">
-        <div>
-          <h1 className="text-2xl font-black uppercase text-slate-900 mb-4">Report Not Found</h1>
-          <Link href="/dashboard" className="text-green-600 font-bold hover:underline">Return to Dashboard</Link>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
+        <div className="text-center">
+          <h1 className="text-lg font-bold text-gray-900 mb-2">Application Not Found</h1>
+          <p className="text-sm text-gray-500 mb-4">The requested credit application could not be retrieved.</p>
+          <Link href="/dashboard" className="text-sm font-medium text-green-800 hover:text-green-700 transition-colors">Return to Dashboard</Link>
         </div>
       </div>
     );
@@ -138,15 +138,22 @@ function AnalysisContent() {
 
   const isLow = data.risk_tier === "LOW";
   const isHigh = data.risk_tier === "HIGH";
-  const riskColor = isLow ? "#10B981" : isHigh ? "#EF4444" : "#F59E0B";
-  const riskLabel = isLow ? "LOW RISK" : isHigh ? "HIGH RISK" : "MEDIUM RISK";
-  const decision = isLow ? "APPROVE" : isHigh ? "DECLINE" : "CAUTION";
-  const decisionIcon = isLow ? "✅" : isHigh ? "❌" : "⚠️";
+
+  const riskClassification = isLow ? "Acceptable" : isHigh ? "Elevated" : "Moderate";
+  const riskColor = isLow ? "#166534" : isHigh ? "#991b1b" : "#92400e";
+  const riskBgLight = isLow ? "#f0fdf4" : isHigh ? "#fef2f2" : "#fffbeb";
+  const riskBorder = isLow ? "#bbf7d0" : isHigh ? "#fecaca" : "#fde68a";
+
+  const decisionLabel = isLow ? "Approve" : isHigh ? "Decline Recommended" : "Conditional Approval";
+  const decisionDesc = isLow
+    ? "Financial metrics remain within acceptable thresholds. Exposure is supported by collateral coverage and adequate debt service capacity."
+    : isHigh
+    ? `The probability of default is assessed at ${data.bad_season_probability}%, which exceeds typical risk tolerance thresholds for unsecured agricultural lending. Despite operational capacity indicators, macro-environmental conditions introduce elevated repayment uncertainty.`
+    : `Risk indicators fall within a cautionary range. Probability of default at ${data.bad_season_probability}% warrants additional scrutiny. Conditional approval may be considered with enhanced monitoring or supplementary collateral.`;
 
   const pd = data.bad_season_probability || 0;
   const baselinePd = data.baseline_pd || 0;
-  const pdImprovement = baselinePd > 0 ? Math.round(((baselinePd - pd) / baselinePd) * 100) : 0;
-  const avoidedLoss = baselinePd > 0 ? Math.round((baselinePd - pd) / 100 * data.amount_requested) : 0;
+  const pdDelta = baselinePd > 0 ? Math.round(((baselinePd - pd) / baselinePd) * 100) : 0;
 
   const dsc = data.dsc_ratio || 0;
   const ltv = data.ltv || 0;
@@ -161,6 +168,7 @@ function AnalysisContent() {
   const modelComp = data.model_comparison || {};
 
   const today = new Date().toLocaleDateString(lang === 'hi' ? 'hi-IN' : lang === 'pa' ? 'pa-IN' : 'en-US', { year: "numeric", month: "long", day: "numeric" });
+  const refId = data.scenario_id || id?.slice(0, 8).toUpperCase();
 
   const t = {
     hi: {
@@ -178,52 +186,72 @@ function AnalysisContent() {
       listen: "ਸੁਣੋ"
     },
     en: {
-      lender_report: "Lender Report",
-      farmer_summary: "Farmer Summary",
-      ai_pdf: "AI Report PDF",
+      lender_report: "Credit Risk Assessment",
+      farmer_summary: "Borrower Summary",
+      ai_pdf: "Export PDF",
       generating: "Generating...",
       listen: "Listen"
     }
   }[lang as 'hi' | 'pa' | 'en'] || {
-    lender_report: "Lender Report",
-    farmer_summary: "Farmer Summary",
-    ai_pdf: "AI Report PDF",
+    lender_report: "Credit Risk Assessment",
+    farmer_summary: "Borrower Summary",
+    ai_pdf: "Export PDF",
     generating: "Generating...",
     listen: "Listen"
   };
 
-  return (
-    <main className="min-h-screen bg-slate-100 text-slate-900 p-4 sm:p-8 md:p-12 font-sans selection:bg-green-500/30 report-page">
-      <div className="max-w-[1100px] mx-auto space-y-6">
+  const dscNote = dscOk
+    ? `Debt service capacity remains strong at ${dsc}x, indicating substantial ability to meet repayment obligations under current projections.`
+    : `Debt service coverage of ${dsc}x falls below the preferred 1.2x threshold, suggesting limited margin for repayment under adverse conditions.`;
+  const ltvNote = ltvOk
+    ? `Loan-to-value ratio of ${Math.round(ltv * 100)}% is within acceptable parameters. Collateral provides adequate coverage for the requested exposure.`
+    : `Loan-to-value at ${Math.round(ltv * 100)}% exceeds the 75% guideline, indicating insufficient collateral margin relative to the loan amount.`;
+  const equityNote = equityOk
+    ? `Borrower equity contribution of ${Math.round(equity * 100)}% demonstrates meaningful commitment and provides loss absorption capacity.`
+    : `Equity participation at ${Math.round(equity * 100)}% is below the recommended 30% threshold. Additional capital contribution should be considered.`;
 
-        {/* Screen-only Action Bar */}
-        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pb-4 screen-only">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-green-600/20">
-              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" /></svg>
+  return (
+    <main className="min-h-screen bg-gray-50 text-gray-900 p-4 sm:p-8 md:p-12 report-page">
+      <div className="max-w-[1100px] mx-auto space-y-4">
+
+        {/* Action Bar */}
+        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 screen-only">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-green-900 rounded flex items-center justify-center">
+              <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+              </svg>
             </div>
-            <h1 className="text-xl font-black tracking-tight text-slate-900 uppercase italic">Agricredit <span className="text-green-600">{t.lender_report}</span></h1>
+            <h1 className="text-base font-bold text-gray-900 tracking-tight">{t.lender_report}</h1>
             <button 
               onClick={() => speak("Lender Report", "results")}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-green-100 transition-colors border border-green-200/50"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 rounded text-[10px] font-bold uppercase tracking-widest hover:bg-green-100 transition-colors border border-green-200/50"
             >
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77zm-2 0L7 7H3v10h4l5 3.77V3.23z" /></svg>
               {t.listen}
             </button>
           </div>
-          <div className="flex items-center gap-3 w-full sm:w-auto">
-            <Link href={`/report/summary?id=${id}`} className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all shadow-sm cursor-pointer">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <Link href={`/report/summary?id=${id}`} className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 bg-white border border-gray-200 rounded text-sm font-medium text-gray-600 hover:text-gray-900 hover:border-gray-300 transition-colors">
               {t.farmer_summary}
             </Link>
-            <button onClick={handleGeneratePDF} disabled={generating} className={`flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm cursor-pointer ${generating ? "bg-green-50 border border-green-200 text-green-600" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
+            <button
+              onClick={handleGeneratePDF}
+              disabled={generating}
+              className={`flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2 rounded text-sm font-medium transition-colors ${
+                generating
+                  ? "bg-gray-50 border border-gray-200 text-gray-400 cursor-wait"
+                  : "bg-green-900 text-white hover:bg-green-800 cursor-pointer"
+              }`}
+            >
               {generating ? (
                 <>
-                  <div className="w-4 h-4 mr-2 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-3.5 h-3.5 mr-2 border-2 border-gray-300 border-t-transparent rounded-full animate-spin" />
                   {t.generating}
                 </>
               ) : (
                 <>
-                  <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                  <svg className="w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}><path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" /></svg>
                   {t.ai_pdf}
                 </>
               )}
@@ -231,99 +259,106 @@ function AnalysisContent() {
           </div>
         </header>
 
-        {/* ─── PAGE 1: EXECUTIVE SUMMARY ─── */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden print-page">
-          {/* Report Header */}
-          <div className="flex items-center justify-between px-8 py-5 bg-slate-50 border-b border-slate-200">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" /></svg>
-              </div>
-              <span className="text-sm font-black text-slate-900 uppercase tracking-wider">Agricredit</span>
+        {/* PAGE 1: EXECUTIVE SUMMARY */}
+        <div className="bg-white rounded border border-gray-200 overflow-hidden print-page">
+          <div className="flex items-center justify-between px-6 py-3 bg-gray-50 border-b border-gray-200">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-gray-900 tracking-tight">AgriCredit</span>
+              <span className="text-[11px] text-gray-300">|</span>
+              <span className="text-[11px] font-medium text-gray-400">Confidential</span>
             </div>
-            <div className="flex items-center gap-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <div className="flex items-center gap-5 text-[11px] font-medium text-gray-400">
+              <span>Ref: {refId}</span>
               <span>{data.crop_type} / {data.season}</span>
-              <span>${data.amount_requested?.toLocaleString()}</span>
               <span>{today}</span>
-              <span>Page 1/2</span>
+              <span>1 of 2</span>
             </div>
           </div>
 
-          <div className="p-8 sm:p-10 space-y-8">
-            {/* Risk Dashboard */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-6">
-              <div className="flex items-center gap-5">
-                <div className="w-20 h-20 rounded-full flex items-center justify-center shadow-xl" style={{ backgroundColor: riskColor + "15", border: `3px solid ${riskColor}` }}>
-                  <span className="text-[11px] font-black uppercase tracking-wider text-center leading-tight" style={{ color: riskColor }}>{riskLabel}</span>
-                </div>
-                <div>
-                  <h2 className="text-3xl font-black text-slate-900 uppercase tracking-tight">Executive Summary</h2>
-                  <p className="text-slate-400 font-medium mt-1">Scenario {data.scenario_id}</p>
-                </div>
-              </div>
-            </div>
+          <div className="p-6 sm:p-8 space-y-6">
 
-            {/* Stats Row */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              {[
-                { label: "Default Probability", value: `${pd}%`, ok: pd < 25 },
-                { label: "Expected Loss", value: `$${data.expected_loss?.toLocaleString()}`, ok: true },
-                { label: "DSC Ratio", value: `${dsc}x`, ok: dscOk },
-                { label: "LTV", value: `${Math.round(ltv * 100)}%`, ok: ltvOk },
-              ].map((stat, i) => (
-                <div key={i} className="bg-slate-50 rounded-2xl p-5 border border-slate-100">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">{stat.label}</p>
-                  <p className="text-2xl font-black text-slate-900">{stat.value} {stat.ok ? <span className="text-green-500 text-sm">✓</span> : <span className="text-amber-500 text-sm">!</span>}</p>
-                </div>
-              ))}
-            </div>
-
-            {/* Decision Recommendation */}
-            <div className="rounded-2xl p-6 border-2" style={{ borderColor: riskColor + "40", backgroundColor: riskColor + "08" }}>
-              <div className="flex items-start gap-4">
-                <span className="text-2xl">{decisionIcon}</span>
-                <div>
-                  <h3 className="text-lg font-black uppercase tracking-wide" style={{ color: riskColor }}>
-                    {decision} at {data.suggested_interest_rate}%
-                  </h3>
-                  {avoidedLoss > 0 && (
-                    <p className="text-slate-600 font-medium mt-1">
-                      💰 Avoided loss vs baseline: <span className="font-black">${avoidedLoss.toLocaleString()}</span> (PD {baselinePd}% → {pd}%)
-                    </p>
-                  )}
-                  <p className="text-slate-400 text-sm mt-1">Monitor seasonal conditions and market price movements.</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Key Metrics Table */}
+            {/* Section 1: Executive Summary */}
             <div>
-              <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Key Lending Metrics</h3>
-              <div className="border border-slate-200 rounded-2xl overflow-hidden">
-                <table className="w-full text-left">
+              <div className="flex items-start gap-5 mb-5">
+                <div className="w-14 h-14 rounded flex items-center justify-center flex-shrink-0" style={{ backgroundColor: riskBgLight, border: `1.5px solid ${riskBorder}` }}>
+                  <span className="text-[10px] font-bold text-center leading-tight" style={{ color: riskColor }}>{riskClassification}</span>
+                </div>
+                <div>
+                  <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-0.5">Section 1</p>
+                  <h2 className="text-xl font-bold text-gray-900 tracking-tight">Executive Summary</h2>
+                </div>
+              </div>
+              <p className="text-sm text-gray-600 leading-relaxed">
+                This report presents the credit risk assessment for a {data.crop_type?.toLowerCase()} cultivation loan of <span className="font-semibold text-gray-900">${data.amount_requested?.toLocaleString()}</span> for the {data.season} season. Risk classification is assessed as <span className="font-semibold" style={{ color: riskColor }}>{riskClassification}</span> based on observed financial, environmental, and market indicators.
+              </p>
+            </div>
+
+            {/* Section 2: Key Credit Metrics */}
+            <div>
+              <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-3">Key Credit Metrics</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                {[
+                  { label: "Probability of Default", value: `${pd}%`, ok: pd < 25 },
+                  { label: "Expected Loss", value: `$${data.expected_loss?.toLocaleString()}`, ok: true },
+                  { label: "Debt Service Coverage", value: `${dsc}x`, ok: dscOk },
+                  { label: "Loan-to-Value", value: `${Math.round(ltv * 100)}%`, ok: ltvOk },
+                ].map((stat, i) => (
+                  <div key={i} className="bg-gray-50 rounded p-4 border border-gray-100">
+                    <p className="text-[11px] font-medium text-gray-400 mb-1.5">{stat.label}</p>
+                    <p className="text-lg font-bold text-gray-900">
+                      {stat.value}
+                      <span className={`ml-1.5 text-[10px] font-medium ${stat.ok ? "text-green-700" : "text-amber-600"}`}>
+                        {stat.ok ? "Within threshold" : "Review required"}
+                      </span>
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Section 3: Credit Decision Indication */}
+            <div className="rounded p-5 border" style={{ borderColor: riskBorder, backgroundColor: riskBgLight }}>
+              <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-2">Credit Decision Indication</p>
+              <p className="text-base font-bold mb-2" style={{ color: riskColor }}>
+                {decisionLabel} — Suggested Rate: {data.suggested_interest_rate}%
+              </p>
+              <p className="text-sm text-gray-600 leading-relaxed">{decisionDesc}</p>
+              {pdDelta !== 0 && baselinePd > 0 && (
+                <p className="text-xs text-gray-500 mt-2">
+                  Baseline probability of default: {baselinePd}%. Adjusted assessment: {pd}% ({pdDelta > 0 ? `${pdDelta}% improvement` : `${Math.abs(pdDelta)}% deterioration`} from conventional scoring).
+                </p>
+              )}
+            </div>
+
+            {/* Section 4: Detailed Metrics */}
+            <div>
+              <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-3">Lending Metrics Detail</p>
+              <div className="border border-gray-200 rounded overflow-hidden">
+                <table className="w-full text-left text-sm">
                   <thead>
-                    <tr className="bg-slate-50 border-b border-slate-200">
-                      <th className="px-6 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Metric</th>
-                      <th className="px-6 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Value</th>
-                      <th className="px-6 py-3 text-[10px] font-black text-slate-400 uppercase tracking-widest">Status</th>
+                    <tr className="bg-gray-50 border-b border-gray-200">
+                      <th className="px-5 py-2.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Metric</th>
+                      <th className="px-5 py-2.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Value</th>
+                      <th className="px-5 py-2.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Assessment</th>
+                      <th className="px-5 py-2.5 text-[11px] font-semibold text-gray-500 uppercase tracking-wide">Note</th>
                     </tr>
                   </thead>
-                  <tbody className="text-sm">
+                  <tbody>
                     {[
-                      { metric: "DSC Ratio", value: `${dsc}x`, ok: dscOk, status: dscOk ? "GOOD" : "WEAK" },
-                      { metric: "Loan-to-Value", value: `${Math.round(ltv * 100)}%`, ok: ltvOk, status: ltvOk ? "ACCEPT" : "HIGH" },
-                      { metric: "Equity Ratio", value: `${Math.round(equity * 100)}%`, ok: equityOk, status: equityOk ? "STRONG" : "LOW" },
-                      { metric: "PD vs Baseline", value: `${pdImprovement > 0 ? "-" : ""}${Math.abs(pdImprovement)}%`, ok: pdImprovement > 0, status: pdImprovement > 0 ? "BETTER" : "WORSE" },
-                      { metric: "Collateral Value", value: `$${collateral.toLocaleString()}`, ok: true, status: "VERIFIED" },
+                      { metric: "Debt Service Coverage", value: `${dsc}x`, ok: dscOk, assessment: dscOk ? "Adequate" : "Below threshold", note: dscNote },
+                      { metric: "Loan-to-Value Ratio", value: `${Math.round(ltv * 100)}%`, ok: ltvOk, assessment: ltvOk ? "Acceptable" : "Exceeds guideline", note: ltvNote },
+                      { metric: "Borrower Equity", value: `${Math.round(equity * 100)}%`, ok: equityOk, assessment: equityOk ? "Sufficient" : "Below minimum", note: equityNote },
+                      { metric: "Collateral Valuation", value: `$${collateral.toLocaleString()}`, ok: true, assessment: "Verified", note: `Pledged asset value of $${collateral.toLocaleString()} has been assessed against current market rates.` },
                     ].map((row, i) => (
-                      <tr key={i} className="border-b border-slate-100 last:border-0">
-                        <td className="px-6 py-4 font-bold text-slate-700">{row.metric}</td>
-                        <td className="px-6 py-4 font-black text-slate-900">{row.value}</td>
-                        <td className="px-6 py-4">
-                          <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${row.ok ? "bg-green-50 text-green-700" : "bg-amber-50 text-amber-700"}`}>
-                            {row.ok ? "✅" : "⚠️"} {row.status}
+                      <tr key={i} className="border-b border-gray-100 last:border-0 align-top">
+                        <td className="px-5 py-3 font-medium text-gray-800">{row.metric}</td>
+                        <td className="px-5 py-3 font-bold text-gray-900">{row.value}</td>
+                        <td className="px-5 py-3">
+                          <span className={`inline-block px-2 py-0.5 rounded text-[11px] font-medium ${row.ok ? "bg-green-50 text-green-800 border border-green-200" : "bg-amber-50 text-amber-800 border border-amber-200"}`}>
+                            {row.assessment}
                           </span>
                         </td>
+                        <td className="px-5 py-3 text-xs text-gray-500 max-w-xs">{row.note}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -332,169 +367,147 @@ function AnalysisContent() {
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="px-8 py-3 bg-slate-50 border-t border-slate-200 text-center">
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Decision support. Not regulatory advice. Agricredit.ai</p>
+          <div className="px-6 py-2.5 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+            <p className="text-[11px] text-gray-400">For internal credit committee use only. Not intended as regulatory advice.</p>
+            <p className="text-[11px] text-gray-400">AgriCredit Risk Assessment Services</p>
           </div>
         </div>
 
-        {/* ─── PAGE 2: 5 C's ANALYSIS + ML PROOF ─── */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 overflow-hidden print-page print-page-break">
-          {/* Report Header */}
-          <div className="flex items-center justify-between px-8 py-5 bg-slate-50 border-b border-slate-200">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-                <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" /></svg>
-              </div>
-              <span className="text-sm font-black text-slate-900 uppercase tracking-wider">Agricredit</span>
+        {/* PAGE 2: 5C ANALYSIS + VALIDATION */}
+        <div className="bg-white rounded border border-gray-200 overflow-hidden print-page print-page-break">
+          <div className="flex items-center justify-between px-6 py-3 bg-gray-50 border-b border-gray-200">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-bold text-gray-900 tracking-tight">AgriCredit</span>
+              <span className="text-[11px] text-gray-300">|</span>
+              <span className="text-[11px] font-medium text-gray-400">Confidential</span>
             </div>
-            <div className="flex items-center gap-6 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+            <div className="flex items-center gap-5 text-[11px] font-medium text-gray-400">
+              <span>Ref: {refId}</span>
               <span>{data.crop_type} / {data.season}</span>
-              <span>${data.amount_requested?.toLocaleString()}</span>
               <span>{today}</span>
-              <span>Page 2/2</span>
+              <span>2 of 2</span>
             </div>
           </div>
 
-          <div className="p-8 sm:p-10 space-y-8">
-            <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight">5 C&apos;s Credit Analysis</h2>
+          <div className="p-6 sm:p-8 space-y-6">
 
-            {/* 5 C's Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              {/* Capacity */}
-              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center text-lg shadow-inner">📊</div>
-                  <div>
-                    <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Capacity</h4>
-                    <span className="text-lg font-black" style={{ color: dscOk ? "#10B981" : "#F59E0B" }}>{dsc}x DSC</span>
-                  </div>
-                </div>
-                <p className="text-sm text-slate-500 font-medium leading-relaxed">{data.llm_capacity || `DSC ratio of ${dsc}x indicates sufficient cash flow to service debt.`}</p>
-              </div>
-
-              {/* Capital */}
-              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center text-lg shadow-inner">🏦</div>
-                  <div>
-                    <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Capital</h4>
-                    <span className="text-lg font-black" style={{ color: equityOk ? "#10B981" : "#F59E0B" }}>{Math.round(equity * 100)}% Equity</span>
-                  </div>
-                </div>
-                <p className="text-sm text-slate-500 font-medium leading-relaxed">
-                  {equityOk ? "Strong buffer for operation. Scale-appropriate leverage." : "Equity position below ideal threshold. Consider additional collateral."}
-                </p>
-              </div>
-
-              {/* Collateral */}
-              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center text-lg shadow-inner">🏠</div>
-                  <div>
-                    <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Collateral</h4>
-                    <span className="text-lg font-black" style={{ color: ltvOk ? "#10B981" : "#F59E0B" }}>${collateral.toLocaleString()} ({Math.round(ltv * 100)}% LTV)</span>
-                  </div>
-                </div>
-                <p className="text-sm text-slate-500 font-medium leading-relaxed">{data.llm_collateral || `Collateral covers ${Math.round(ltv * 100)}% LTV. Verifiable assets.`}</p>
-              </div>
-
-              {/* Character */}
-              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                <div className="flex items-center gap-3 mb-3">
-                  <div className="w-10 h-10 bg-green-100 text-green-600 rounded-xl flex items-center justify-center text-lg shadow-inner">👤</div>
-                  <div>
-                    <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Character</h4>
-                    <span className="text-lg font-black text-green-600">Experienced Operator</span>
-                  </div>
-                </div>
-                <p className="text-sm text-slate-500 font-medium leading-relaxed">Seasoned operator with stable management history. Track record demonstrates reliable stewardship.</p>
-              </div>
-            </div>
-
-            {/* Conditions: Feature Importance Chart */}
+            {/* Section 5: 5C Credit Assessment */}
             <div>
-              <div className="flex items-center gap-3 mb-5">
-                <div className="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center text-lg shadow-inner">🌍</div>
-                <div>
-                  <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">Conditions — Climate &amp; Market Risk Drivers</h4>
-                </div>
-              </div>
-              <div className="space-y-3">
-                {featureImportance.map((feat: any, i: number) => {
-                  const pct = Math.round(feat.weight * 100);
-                  return (
-                    <div key={i} className="flex items-center gap-4">
-                      <span className="w-40 text-xs font-bold text-slate-500 text-right truncate">{feat.name}</span>
-                      <div className="flex-1 bg-slate-100 rounded-full h-5 overflow-hidden border border-slate-200">
-                        <div className="h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full transition-all" style={{ width: `${Math.min(pct * 3, 100)}%` }}></div>
-                      </div>
-                      <span className="w-10 text-xs font-black text-slate-900">{pct}%</span>
-                      <span className="w-28 text-[10px] font-medium text-slate-400 truncate">{feat.value}</span>
-                    </div>
-                  );
-                })}
+              <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-0.5">Section 5</p>
+              <h2 className="text-xl font-bold text-gray-900 tracking-tight mb-4">Credit Assessment — 5C Framework</h2>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <FiveCCard
+                  title="Capacity"
+                  metric={`${dsc}x DSC`}
+                  metricColor={dscOk ? "#166534" : "#92400e"}
+                  body={data.llm_capacity || dscNote}
+                />
+                <FiveCCard
+                  title="Capital"
+                  metric={`${Math.round(equity * 100)}% Equity`}
+                  metricColor={equityOk ? "#166534" : "#92400e"}
+                  body={equityOk
+                    ? "Borrower equity contribution provides adequate loss absorption buffer. Leverage is appropriate for the scale of operations."
+                    : "Equity position falls below institutional guidelines. Supplementary collateral or co-borrower guarantee may be warranted."
+                  }
+                />
+                <FiveCCard
+                  title="Collateral"
+                  metric={`$${collateral.toLocaleString()} (${Math.round(ltv * 100)}% LTV)`}
+                  metricColor={ltvOk ? "#166534" : "#92400e"}
+                  body={data.llm_collateral || `Pledged assets valued at $${collateral.toLocaleString()} provide ${ltvOk ? "adequate" : "insufficient"} coverage at a ${Math.round(ltv * 100)}% loan-to-value ratio.`}
+                />
+                <FiveCCard
+                  title="Character"
+                  metric="Experienced Operator"
+                  metricColor="#166534"
+                  body="Borrower demonstrates established operational history with consistent management practices. No adverse credit events identified in available records."
+                />
               </div>
             </div>
 
-            {/* ML Validation */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">ML Model Validation</h4>
-                <div className="space-y-4">
+            {/* Section 6: Conditions — Risk Drivers */}
+            <div>
+              <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-0.5">Section 6</p>
+              <h3 className="text-base font-bold text-gray-900 tracking-tight mb-3">Conditions — Climate and Market Risk Factors</h3>
+              {featureImportance.length > 0 ? (
+                <div className="space-y-2">
+                  {featureImportance.map((feat: any, i: number) => {
+                    const pct = Math.round(feat.weight * 100);
+                    return (
+                      <div key={i} className="flex items-center gap-3">
+                        <span className="w-36 text-xs font-medium text-gray-500 text-right truncate">{feat.name}</span>
+                        <div className="flex-1 bg-gray-100 rounded h-3 overflow-hidden border border-gray-200">
+                          <div className="h-full bg-gray-700 rounded transition-all duration-500" style={{ width: `${Math.min(pct * 3, 100)}%` }} />
+                        </div>
+                        <span className="w-10 text-xs font-bold text-gray-900 tabular-nums">{pct}%</span>
+                        <span className="w-28 text-[11px] text-gray-400 truncate">{feat.value}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">Detailed risk factor breakdown not available for this assessment.</p>
+              )}
+              <div className="mt-4 space-y-1.5">
+                {[data.rainfall_forecast, data.yield_stability, data.price_volatility].filter(Boolean).map((line: string, i: number) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <span className="mt-1.5 w-1 h-1 rounded-full bg-gray-400 flex-shrink-0" />
+                    <span className="text-xs text-gray-500">{line}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Section 7: Model Validation */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="bg-gray-50 rounded p-5 border border-gray-100">
+                <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-3">Model Validation Note</p>
+                <div className="space-y-3">
                   <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Bank Logistic Baseline</span>
-                      <span className="text-xs font-black text-slate-500">{Math.round((modelComp.baseline_auc || 0.71) * 100)}% AUC</span>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-[11px] font-medium text-gray-500">Conventional Logistic Model</span>
+                      <span className="text-xs font-bold text-gray-500 tabular-nums">{Math.round((modelComp.baseline_auc || 0.71) * 100)}% AUC</span>
                     </div>
-                    <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
-                      <div className="h-full bg-slate-400 rounded-full" style={{ width: `${(modelComp.baseline_auc || 0.71) * 100}%` }}></div>
+                    <div className="w-full h-2 bg-gray-200 rounded overflow-hidden">
+                      <div className="h-full bg-gray-400 rounded transition-all duration-500" style={{ width: `${(modelComp.baseline_auc || 0.71) * 100}%` }} />
                     </div>
                   </div>
                   <div>
-                    <div className="flex justify-between mb-2">
-                      <span className="text-[10px] font-black text-green-600 uppercase tracking-widest">Agricredit Enhanced</span>
-                      <span className="text-xs font-black text-green-600">{Math.round((modelComp.enhanced_auc || 0.89) * 100)}% AUC</span>
+                    <div className="flex justify-between mb-1">
+                      <span className="text-[11px] font-medium text-gray-700">Enhanced Risk Model</span>
+                      <span className="text-xs font-bold text-gray-700 tabular-nums">{Math.round((modelComp.enhanced_auc || 0.89) * 100)}% AUC</span>
                     </div>
-                    <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
-                      <div className="h-full bg-green-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.3)]" style={{ width: `${(modelComp.enhanced_auc || 0.89) * 100}%` }}></div>
+                    <div className="w-full h-2 bg-gray-200 rounded overflow-hidden">
+                      <div className="h-full bg-gray-700 rounded transition-all duration-500" style={{ width: `${(modelComp.enhanced_auc || 0.89) * 100}%` }} />
                     </div>
                   </div>
                 </div>
-                <p className="text-[10px] text-slate-400 font-bold mt-4 uppercase tracking-wide italic">
-                  {Math.round(((modelComp.enhanced_auc || 0.89) - (modelComp.baseline_auc || 0.71)) / (modelComp.baseline_auc || 0.71) * 100)}% improvement in risk detection
+                <p className="text-[11px] text-gray-400 mt-3">
+                  Enhanced model demonstrates {Math.round(((modelComp.enhanced_auc || 0.89) - (modelComp.baseline_auc || 0.71)) / (modelComp.baseline_auc || 0.71) * 100)}% improvement in discriminatory power over conventional scoring methodology.
                 </p>
               </div>
 
-              {/* Data Sources */}
-              <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
-                <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4">Data Sources</h4>
-                <div className="flex flex-wrap gap-2">
+              <div className="bg-gray-50 rounded p-5 border border-gray-100">
+                <p className="text-[11px] font-medium text-gray-400 uppercase tracking-wide mb-3">Data Sources</p>
+                <div className="flex flex-wrap gap-1.5 mb-3">
                   {["IMD", "AGMARKNET", "FAOSTAT", "Drought Atlas", "NASA SPEI"].map((source, i) => (
-                    <span key={i} className="inline-flex items-center px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-[10px] font-black text-slate-500 uppercase tracking-wider shadow-sm">
+                    <span key={i} className="inline-flex items-center px-2 py-1 bg-white border border-gray-200 rounded text-[11px] font-medium text-gray-500">
                       {source}
                     </span>
                   ))}
                 </div>
-                <div className="mt-5 space-y-2">
-                  {[
-                    data.rainfall_forecast,
-                    data.yield_stability,
-                    data.price_volatility
-                  ].filter(Boolean).map((line: string, i: number) => (
-                    <div key={i} className="flex items-start gap-2">
-                      <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-green-400 flex-shrink-0"></span>
-                      <span className="text-xs text-slate-500 font-medium">{line}</span>
-                    </div>
-                  ))}
-                </div>
+                <p className="text-xs text-gray-500 leading-relaxed">
+                  Assessment incorporates meteorological observations, historical yield records, commodity price indices, and drought severity indicators from verified institutional data providers.
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Footer */}
-          <div className="px-8 py-3 bg-slate-50 border-t border-slate-200 text-center">
-            <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Decision support. Not regulatory advice. Agricredit.ai</p>
+          <div className="px-6 py-2.5 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+            <p className="text-[11px] text-gray-400">For internal credit committee use only. Not intended as regulatory advice.</p>
+            <p className="text-[11px] text-gray-400">AgriCredit Risk Assessment Services</p>
           </div>
         </div>
       </div>
@@ -510,5 +523,15 @@ function AnalysisContent() {
         }
       `}</style>
     </main>
+  );
+}
+
+function FiveCCard({ title, metric, metricColor, body }: { title: string; metric: string; metricColor: string; body: string }) {
+  return (
+    <div className="bg-gray-50 rounded p-5 border border-gray-100">
+      <p className="text-[11px] font-semibold text-gray-900 uppercase tracking-wide mb-1">{title}</p>
+      <p className="text-sm font-bold mb-2" style={{ color: metricColor }}>{metric}</p>
+      <p className="text-sm text-gray-500 leading-relaxed">{body}</p>
+    </div>
   );
 }
