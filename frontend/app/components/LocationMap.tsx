@@ -15,6 +15,7 @@ interface LocationMapProps {
   coordinates: string;
   location?: string;
   farmSizeHectares?: number;
+  farmCircleColor?: string;
   onCoordinatesChange: (coords: string) => void;
   onLocationChange?: (location: string) => void;
   children?: React.ReactNode;
@@ -44,7 +45,7 @@ interface HoverInfo {
   category: string;
 }
 
-export default function LocationMap({ coordinates, location, farmSizeHectares, onCoordinatesChange, onLocationChange, children }: LocationMapProps) {
+export default function LocationMap({ coordinates, location, farmSizeHectares, farmCircleColor, onCoordinatesChange, onLocationChange, children }: LocationMapProps) {
   const [position, setPosition] = useState<{lat: number; lng: number} | null>(null);
   const [geoData, setGeoData] = useState<GeoJSON.FeatureCollection | null>(null);
   const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null);
@@ -362,7 +363,7 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, o
                 id="farm-radius-fill"
                 type="fill"
                 paint={{
-                  "fill-color": "#166534",
+                  "fill-color": farmCircleColor || "#166534",
                   "fill-opacity": 0.15,
                 }}
               />
@@ -370,7 +371,7 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, o
                 id="farm-radius-outline"
                 type="line"
                 paint={{
-                  "line-color": "#166534",
+                  "line-color": farmCircleColor || "#166534",
                   "line-width": 2,
                   "line-opacity": 0.6,
                   "line-dasharray": [3, 2],
@@ -432,7 +433,7 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, o
         style={{
           position: "absolute",
           bottom: 24,
-          left: 24,
+          right: 24,
           zIndex: 50,
           background: "rgba(255,255,255,0.92)",
           backdropFilter: "blur(8px)",
@@ -484,20 +485,22 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, o
         <div
           style={{
             position: "absolute",
-            bottom: 24,
-            right: 80,
+            bottom: 4,
+            right: 24,
             zIndex: 50,
-            background: "rgba(255,255,255,0.92)",
-            backdropFilter: "blur(8px)",
-            borderRadius: 12,
-            padding: "8px 14px",
-            fontSize: 12,
-            fontWeight: 700,
+            width: "auto",
+            textAlign: "center",
+            background: "rgba(255,255,255,0.85)",
+            backdropFilter: "blur(6px)",
+            borderRadius: 6,
+            padding: "2px 6px",
+            fontSize: 7,
+            fontWeight: 600,
             color: "#166534",
-            boxShadow: "0 1px 6px rgba(0,0,0,0.12)",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
           }}
         >
-          📍 {position.lat.toFixed(4)}, {position.lng.toFixed(4)}
+          {position.lat.toFixed(4)}, {position.lng.toFixed(4)}
         </div>
       )}
 

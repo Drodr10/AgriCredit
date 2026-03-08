@@ -70,7 +70,14 @@ function AnalysisContent() {
       const res = await fetch(`http://localhost:8000/reports/generate/${id}`, { method: "POST" });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: "Failed to generate report" }));
-        reportWindow.document.body.innerHTML = `<div class="p-8 text-red-600 font-bold">Error: ${err.detail || "Failed to generate report"}</div>`;
+        const errHtml = `<div class="p-8 text-red-600 font-bold">Error: ${err.detail || "Failed to generate report"}</div>`;
+        if (reportWindow.document.body) {
+          reportWindow.document.body.innerHTML = errHtml;
+        } else {
+          reportWindow.document.open();
+          reportWindow.document.write(errHtml);
+          reportWindow.document.close();
+        }
         return;
       }
       const html = await res.text();
@@ -87,7 +94,14 @@ function AnalysisContent() {
 
     } catch (err) {
       console.error("Report generation failed:", err);
-      reportWindow.document.body.innerHTML = `<div class="p-8 text-red-600 font-bold">Failed to connect to backend. Is it running?</div>`;
+      const errHtml = `<div class="p-8 text-red-600 font-bold">Failed to connect to backend. Is it running?</div>`;
+      if (reportWindow.document.body) {
+        reportWindow.document.body.innerHTML = errHtml;
+      } else {
+        reportWindow.document.open();
+        reportWindow.document.write(errHtml);
+        reportWindow.document.close();
+      }
     } finally {
       setGenerating(false);
     }
