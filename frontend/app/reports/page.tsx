@@ -42,8 +42,8 @@ export default function AllReportsPage() {
       const email = user?.primaryEmailAddress?.emailAddress || "";
 
       const [userRes, reportsRes] = await Promise.all([
-        fetch(`http://localhost:8000/users/me?clerk_id=${clerkId}&email=${email}`),
-        fetch(`http://localhost:8000/credit-applications/by-user/${clerkId}`),
+        fetch(`${process.env.BACKEND_URL}/users/me?clerk_id=${clerkId}&email=${email}`),
+        fetch(`${process.env.BACKEND_URL}/credit-applications/by-user/${clerkId}`),
       ]);
 
       if (userRes.ok) {
@@ -64,7 +64,7 @@ export default function AllReportsPage() {
   const handleDelete = async (id: string) => {
     setDeleting(true);
     try {
-      const response = await fetch(`http://localhost:8000/credit-applications/${id}`, { method: "DELETE" });
+      const response = await fetch(`${process.env.BACKEND_URL}/credit-applications/${id}`, { method: "DELETE" });
       if (response.ok) {
         setReports((prev) => prev.filter((r) => r.id !== id));
         setDeleteId(null);

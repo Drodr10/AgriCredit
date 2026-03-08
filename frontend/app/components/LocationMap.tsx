@@ -505,24 +505,25 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, f
             top: 20, 
             right: 80, 
             zIndex: 50,
-            background: 'rgba(255, 255, 255, 0.95)',
-            backdropFilter: 'blur(8px)',
-            padding: '16px',
-            borderRadius: '8px',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            background: 'rgba(255, 255, 255, 0.96)',
+            backdropFilter: 'blur(12px)',
+            padding: '14px 16px',
+            borderRadius: 4,
+            border: '1px solid #e5e7eb',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
             display: 'flex',
             flexDirection: 'column',
-            gap: '12px'
+            gap: '10px',
         }}
       >
-        <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold' }}>Map Layers</h3>
+        <h3 style={{ margin: 0, fontSize: 13, fontWeight: 600, color: '#111827' }}>Map Layers</h3>
         
         <div>
-            <label style={{ display: 'block', fontSize: '11px', marginBottom: '4px', color: '#4b5563', fontWeight: '600' }}>Data View</label>
+            <label style={{ display: 'block', fontSize: 12, marginBottom: 4, color: '#6b7280', fontWeight: 500 }}>Data View</label>
             <select 
                 value={activeLayer} 
                 onChange={(e) => setActiveLayer(e.target.value as 'drought' | 'crop' | 'rainfall')}
-                style={{ width: '100%', padding: '6px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '12px', background: 'white' }}
+                style={{ width: '100%', padding: '6px 8px', borderRadius: 3, border: '1px solid #d1d5db', fontSize: 12, background: 'white' }}
             >
                 <option value="drought">State Drought Index (SPEI)</option>
                 <option value="crop">District Crop Yield History</option>
@@ -533,11 +534,11 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, f
         {activeLayer === 'crop' && (
             <>
                 <div>
-                    <label style={{ display: 'block', fontSize: '11px', marginBottom: '4px', color: '#4b5563', fontWeight: '600' }}>Crop Type</label>
+                    <label style={{ display: 'block', fontSize: 12, marginBottom: 4, color: '#6b7280', fontWeight: 500 }}>Crop Type</label>
                     <select 
                         value={selectedCrop} 
                         onChange={(e) => setSelectedCrop(e.target.value)}
-                        style={{ width: '100%', padding: '6px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '12px', background: 'white' }}
+                        style={{ width: '100%', padding: '6px 8px', borderRadius: 3, border: '1px solid #d1d5db', fontSize: 12, background: 'white' }}
                     >
                         {CROP_OPTIONS.map(opt => (
                             <option key={opt.value} value={opt.value}>{opt.label}</option>
@@ -545,7 +546,7 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, f
                     </select>
                 </div>
                 <div>
-                    <label style={{ display: 'block', fontSize: '11px', marginBottom: '4px', color: '#4b5563', fontWeight: '600' }}>Year ({selectedYear})</label>
+                    <label style={{ display: 'block', fontSize: 12, marginBottom: 4, color: '#6b7280', fontWeight: 500 }}>Year ({selectedYear})</label>
                     <input 
                         type="range" 
                         min={1966} 
@@ -729,16 +730,17 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, f
             position: "absolute",
             left: hoverInfo.x + 12,
             top: hoverInfo.y - 12,
-            background: "rgba(255,255,255,0.95)",
-            backdropFilter: "blur(8px)",
-            borderRadius: 10,
+            background: "rgba(255,255,255,0.96)",
+            backdropFilter: "blur(12px)",
+            borderRadius: 4,
+            border: "1px solid #e5e7eb",
             padding: "8px 12px",
             pointerEvents: "none",
             zIndex: 60,
-            boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
-            fontSize: 11,
-            lineHeight: 1.4,
-            maxWidth: 180,
+            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+            fontSize: 12,
+            lineHeight: 1.5,
+            maxWidth: 200,
           }}
         >
           {activeLayer === 'drought' && (
@@ -791,13 +793,14 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, f
             bottom: 24,
             right: 24,
             zIndex: 50,
-            background: "rgba(255,255,255,0.92)",
-            backdropFilter: "blur(8px)",
-            borderRadius: 12,
+            background: "rgba(255,255,255,0.96)",
+            backdropFilter: "blur(12px)",
+            borderRadius: 4,
+            border: "1px solid #e5e7eb",
             padding: "8px 12px",
-            fontSize: 9,
-            boxShadow: "0 1px 6px rgba(0,0,0,0.12)",
-            maxWidth: 150,
+            fontSize: 11,
+            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+            maxWidth: 160,
             }}
         >
             <div
@@ -811,7 +814,7 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, f
             }}
             onClick={(e) => { e.stopPropagation(); setShowOverlay(!showOverlay); }}
             >
-            <span style={{ fontWeight: 700, fontSize: 10 }}>Drought Index</span>
+            <span style={{ fontWeight: 600, fontSize: 12, color: '#111827' }}>Drought Index</span>
             <span style={{ fontSize: 10, color: "#9ca3af", marginLeft: 6 }}>
                 {showOverlay ? "▼" : "▶"}
             </span>
@@ -847,14 +850,15 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, f
             zIndex: 50,
             width: "auto",
             textAlign: "center",
-            background: "rgba(255,255,255,0.85)",
-            backdropFilter: "blur(6px)",
-            borderRadius: 6,
-            padding: "2px 6px",
-            fontSize: 7,
-            fontWeight: 600,
+            background: "rgba(255,255,255,0.96)",
+            backdropFilter: "blur(12px)",
+            borderRadius: 3,
+            border: "1px solid #e5e7eb",
+            padding: "3px 8px",
+            fontSize: 10,
+            fontWeight: 500,
             color: "#166534",
-            boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
+            boxShadow: "0 1px 2px rgba(0,0,0,0.06)",
           }}
         >
           {position.lat.toFixed(4)}, {position.lng.toFixed(4)}

@@ -17,17 +17,24 @@ async function proxyRequest(request: NextRequest): Promise<NextResponse> {
       ? await request.arrayBuffer()
       : undefined;
 
-  const response = await fetch(upstreamUrl, {
-    method: request.method,
-    headers,
-    body,
-  });
+  try {
+    const response = await fetch(upstreamUrl, {
+      method: request.method,
+      headers,
+      body,
+    });
 
-  return new NextResponse(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: response.headers,
-  });
+    return new NextResponse(response.body, {
+      status: response.status,
+      statusText: response.statusText,
+      headers: response.headers,
+    });
+  } catch {
+    return NextResponse.json(
+      { error: "Backend unavailable" },
+      { status: 502 },
+    );
+  }
 }
 
 export async function GET(request: NextRequest) {

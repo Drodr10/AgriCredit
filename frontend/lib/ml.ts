@@ -26,7 +26,7 @@ export interface AnalysisResponse {
 }
 
 export async function analyzeFarm(farmId: string, request: AnalysisRequest): Promise<AnalysisResponse> {
-  const res = await fetch(`http://localhost:8000/ml/analyze/${farmId}`, {
+  const res = await fetch(`${process.env.BACKEND_URL}/ml/analyze/${farmId}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(request),

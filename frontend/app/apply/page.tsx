@@ -17,8 +17,8 @@ const LOAN_PURPOSES = [
 export default function CreditApplicationPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-5 h-5 border-2 border-green-800 border-t-transparent rounded-full animate-spin"></div>
       </div>
     }>
       <CreditApplicationForm />
@@ -57,13 +57,12 @@ function CreditApplicationForm() {
     try {
       const clerkId = user?.id;
       const email = user?.primaryEmailAddress?.emailAddress || "";
-      const response = await fetch(`http://localhost:8000/users/me?clerk_id=${clerkId}&email=${email}`);
+      const response = await fetch(`/api/users/me?clerk_id=${clerkId}&email=${email}`);
       if (response.ok) {
         const data = await response.json();
         const userFarms = data.farms || [];
         setFarms(userFarms);
         
-        // Handle pre-selection from URL or default to first
         const initialFarmId = farmIdParam || (userFarms.length > 0 ? userFarms[0].id : "");
         const selectedFarm = userFarms.find((f: any) => f.id === initialFarmId);
         
@@ -85,7 +84,7 @@ function CreditApplicationForm() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const response = await fetch(`http://localhost:8000/credit-applications/`, {
+      const response = await fetch(`/api/credit-applications/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -93,12 +92,9 @@ function CreditApplicationForm() {
       if (response.ok) {
         const result = await response.json();
         router.push(`/report/summary?id=${result.id}`);
-      } else {
-        const err = await response.json();
-        console.error("Submission failed:", err);
       }
-    } catch (error) {
-      console.error("Error submitting application:", error);
+    } catch (_) {
+      // Backend unavailable
     } finally {
       setSubmitting(false);
     }
@@ -106,164 +102,169 @@ function CreditApplicationForm() {
 
   if (!isLoaded || loading) {
     return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="w-5 h-5 border-2 border-green-800 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-green-500/30">
-      <div className="max-w-3xl mx-auto px-6 py-12">
-        <div className="mb-12">
-          <Link href="/dashboard" className="text-xs font-black text-slate-400 uppercase tracking-widest hover:text-green-600 transition-colors flex items-center gap-2 mb-6">
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
+    <div className="min-h-screen bg-gray-50 text-gray-900">
+      <div className="max-w-2xl mx-auto px-6 py-10">
+        <div className="mb-8">
+          <Link href="/dashboard" className="text-sm text-gray-400 hover:text-gray-900 transition-colors inline-flex items-center gap-1.5 mb-4">
+            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
             </svg>
             Back to Dashboard
           </Link>
-          <h1 className="text-4xl font-black tracking-tight uppercase italic">Credit <span className="text-green-600">Application</span></h1>
-          <p className="text-slate-500 mt-2 font-medium">Apply for a tailored agricultural loan using our AI-driven risk assessment.</p>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">Credit Application</h1>
+          <p className="text-gray-500 text-sm mt-1">Apply for a tailored agricultural loan using our AI-driven risk assessment.</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-8 bg-white p-8 sm:p-10 rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50">
-          
-          {/* Farm Selection */}
-          <div className="group">
-            <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-600 transition-colors">Select Farm</label>
-            <select 
-              required
-              className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-500 focus:bg-white outline-none transition-all appearance-none cursor-pointer"
-              value={formData.farmer_id}
-              onChange={(e) => {
-                const selectedFarm = farms.find(f => f.id === e.target.value);
-                setFormData({ ...formData, farmer_id: e.target.value, region: selectedFarm?.location || "" });
-              }}
-            >
-              <option value="" disabled>Choose a farm...</option>
-              {farms.map((farm) => (
-                <option key={farm.id} value={farm.id}>{farm.name} ({farm.location})</option>
-              ))}
-            </select>
-          </div>
+        <form onSubmit={handleSubmit} className="bg-white rounded border border-gray-200 shadow-sm">
+          <div className="p-6 space-y-6">
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Season */}
-            <div className="group">
-              <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-600 transition-colors">Season</label>
+            {/* Farm Selection */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">Select Farm</label>
               <select 
                 required
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-500 focus:bg-white outline-none transition-all appearance-none cursor-pointer"
-                value={formData.season}
-                onChange={(e) => setFormData({ ...formData, season: e.target.value })}
+                className="w-full bg-white border border-gray-200 rounded px-4 py-2.5 text-sm focus:border-green-800 focus:ring-2 focus:ring-green-800/10 outline-none transition-colors appearance-none cursor-pointer"
+                value={formData.farmer_id}
+                onChange={(e) => {
+                  const selectedFarm = farms.find(f => f.id === e.target.value);
+                  setFormData({ ...formData, farmer_id: e.target.value, region: selectedFarm?.location || "" });
+                }}
               >
-                <option value="" disabled>Select season...</option>
-                <option value="kharif">Kharif (Jul – Oct)</option>
-                <option value="rabi">Rabi (Nov – Mar)</option>
-              </select>
-            </div>
-
-            {/* Primary Crop */}
-            <div className="group">
-              <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-600 transition-colors">Primary Crop</label>
-              <select 
-                required
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-500 focus:bg-white outline-none transition-all appearance-none cursor-pointer"
-                value={formData.crop_type}
-                onChange={(e) => setFormData({ ...formData, crop_type: e.target.value })}
-              >
-                <option value="" disabled>Select crop...</option>
-                <option value="rice">Rice</option>
-                <option value="wheat">Wheat</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {/* Loan Amount */}
-            <div className="group">
-              <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-600 transition-colors">Loan Amount Desired ($)</label>
-              <input 
-                required
-                type="number" 
-                min="100"
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-500 focus:bg-white outline-none transition-all"
-                value={formData.amount_requested || ""}
-                onChange={(e) => setFormData({ ...formData, amount_requested: parseFloat(e.target.value) || 0 })}
-              />
-            </div>
-
-            {/* Loan Purpose */}
-            <div className="group">
-              <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-600 transition-colors">Purpose of Loan</label>
-              <select 
-                required
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-500 focus:bg-white outline-none transition-all appearance-none cursor-pointer"
-                value={formData.loan_purpose}
-                onChange={(e) => setFormData({ ...formData, loan_purpose: e.target.value })}
-              >
-                {LOAN_PURPOSES.map((p) => (
-                  <option key={p.id} value={p.id}>{p.label}</option>
+                <option value="" disabled>Choose a farm...</option>
+                {farms.map((farm) => (
+                  <option key={farm.id} value={farm.id}>{farm.name} ({farm.location})</option>
                 ))}
               </select>
             </div>
-          </div>
 
-          <div className="pt-4 border-t border-slate-100">
-            {/* Insurance Toggle */}
-            <div className="flex items-center justify-between group py-2">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Season */}
               <div>
-                <label className="block text-sm font-black text-slate-800 uppercase tracking-tight">Crop Insurance</label>
-                <p className="text-xs text-slate-400 font-medium mt-1">Do you have existing insurance for your current crops?</p>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Season</label>
+                <select 
+                  required
+                  className="w-full bg-white border border-gray-200 rounded px-4 py-2.5 text-sm focus:border-green-800 focus:ring-2 focus:ring-green-800/10 outline-none transition-colors appearance-none cursor-pointer"
+                  value={formData.season}
+                  onChange={(e) => setFormData({ ...formData, season: e.target.value })}
+                >
+                  <option value="" disabled>Select season...</option>
+                  <option value="kharif">Kharif (Jul – Oct)</option>
+                  <option value="rabi">Rabi (Nov – Mar)</option>
+                </select>
               </div>
-              <button 
-                type="button"
-                onClick={() => setFormData({ ...formData, has_insurance: !formData.has_insurance, insurance_type: !formData.has_insurance ? formData.insurance_type : "" })}
-                className={`w-14 h-8 rounded-full transition-all relative flex items-center px-1 ${formData.has_insurance ? 'bg-green-500' : 'bg-slate-200'}`}
-              >
-                <div className={`w-6 h-6 bg-white rounded-full shadow-md transition-transform duration-300 ${formData.has_insurance ? 'translate-x-6' : 'translate-x-0'}`}></div>
-              </button>
+
+              {/* Primary Crop */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Primary Crop</label>
+                <select 
+                  required
+                  className="w-full bg-white border border-gray-200 rounded px-4 py-2.5 text-sm focus:border-green-800 focus:ring-2 focus:ring-green-800/10 outline-none transition-colors appearance-none cursor-pointer"
+                  value={formData.crop_type}
+                  onChange={(e) => setFormData({ ...formData, crop_type: e.target.value })}
+                >
+                  <option value="" disabled>Select crop...</option>
+                  <option value="rice">Rice</option>
+                  <option value="wheat">Wheat</option>
+                </select>
+              </div>
             </div>
 
-            {/* Insurance Type - Conditional */}
-            {formData.has_insurance && (
-              <div className="mt-6 group animate-in fade-in slide-in-from-top-2 duration-300">
-                <label className="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest group-focus-within:text-green-600 transition-colors">Insurance Provider/Type</label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Loan Amount */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Loan Amount (USD)</label>
                 <input 
-                  required={formData.has_insurance}
-                  type="text" 
-                  placeholder="e.g. PMFBY Multipurpose"
-                  className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-500 focus:bg-white outline-none transition-all"
-                  value={formData.insurance_type}
-                  onChange={(e) => setFormData({ ...formData, insurance_type: e.target.value })}
+                  required
+                  type="number" 
+                  min="100"
+                  placeholder="e.g. 5000"
+                  className="w-full bg-white border border-gray-200 rounded px-4 py-2.5 text-sm focus:border-green-800 focus:ring-2 focus:ring-green-800/10 outline-none transition-colors placeholder:text-gray-300"
+                  value={formData.amount_requested || ""}
+                  onChange={(e) => setFormData({ ...formData, amount_requested: parseFloat(e.target.value) || 0 })}
                 />
               </div>
-            )}
+
+              {/* Loan Purpose */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Purpose of Loan</label>
+                <select 
+                  required
+                  className="w-full bg-white border border-gray-200 rounded px-4 py-2.5 text-sm focus:border-green-800 focus:ring-2 focus:ring-green-800/10 outline-none transition-colors appearance-none cursor-pointer"
+                  value={formData.loan_purpose}
+                  onChange={(e) => setFormData({ ...formData, loan_purpose: e.target.value })}
+                >
+                  {LOAN_PURPOSES.map((p) => (
+                    <option key={p.id} value={p.id}>{p.label}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Insurance Section */}
+            <div className="pt-4 border-t border-gray-100">
+              <div className="flex items-center justify-between py-1">
+                <div>
+                  <label className="block text-sm font-medium text-gray-900">Crop Insurance</label>
+                  <p className="text-xs text-gray-400 mt-0.5">Do you have existing insurance for your current crops?</p>
+                </div>
+                <button 
+                  type="button"
+                  onClick={() => setFormData({ ...formData, has_insurance: !formData.has_insurance, insurance_type: !formData.has_insurance ? formData.insurance_type : "" })}
+                  className={`w-11 h-6 rounded-full transition-colors relative flex items-center px-0.5 ${formData.has_insurance ? 'bg-green-800' : 'bg-gray-200'}`}
+                >
+                  <div className={`w-5 h-5 bg-white rounded-full shadow-sm transition-transform duration-200 ${formData.has_insurance ? 'translate-x-5' : 'translate-x-0'}`}></div>
+                </button>
+              </div>
+
+              {formData.has_insurance && (
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">Insurance Provider / Type</label>
+                  <input 
+                    required={formData.has_insurance}
+                    type="text" 
+                    placeholder="e.g. PMFBY Multipurpose"
+                    className="w-full bg-white border border-gray-200 rounded px-4 py-2.5 text-sm focus:border-green-800 focus:ring-2 focus:ring-green-800/10 outline-none transition-colors placeholder:text-gray-300"
+                    value={formData.insurance_type}
+                    onChange={(e) => setFormData({ ...formData, insurance_type: e.target.value })}
+                  />
+                </div>
+              )}
+            </div>
           </div>
 
-          <button 
-            type="submit"
-            disabled={submitting || !formData.farmer_id}
-            className={`w-full py-6 rounded-2xl font-black uppercase text-sm tracking-[0.2em] transition-all shadow-2xl mt-8 ${
-              submitting || !formData.farmer_id
-              ? "bg-slate-200 text-slate-400 cursor-not-allowed" 
-              : "bg-green-600 hover:bg-green-500 text-white hover:shadow-green-600/40 hover:-translate-y-1"
-            }`}
-          >
-            {submitting ? (
-              <span className="flex items-center justify-center gap-2">
-                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Processing Analysis...
-              </span>
-            ) : "Generate AI Risk Analysis"}
-          </button>
+          {/* Submit */}
+          <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 rounded-b">
+            <button 
+              type="submit"
+              disabled={submitting || !formData.farmer_id}
+              className={`w-full py-2.5 rounded text-sm font-semibold transition-colors ${
+                submitting || !formData.farmer_id
+                ? "bg-gray-100 text-gray-300 cursor-not-allowed" 
+                : "bg-green-800 hover:bg-green-700 text-white"
+              }`}
+            >
+              {submitting ? (
+                <span className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  Processing...
+                </span>
+              ) : "Generate AI Risk Analysis"}
+            </button>
+          </div>
         </form>
 
-        <p className="text-center mt-8 text-[10px] font-black text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2">
+        <p className="text-center mt-6 text-xs text-gray-400 flex items-center justify-center gap-1.5">
            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
            </svg>
-           Your data is processed in real-time by the AgriCredit ML Engine.
+           Processed in real-time by the AgriCredit ML Engine
         </p>
       </div>
     </div>

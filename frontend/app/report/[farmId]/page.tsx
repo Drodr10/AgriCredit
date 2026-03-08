@@ -27,7 +27,7 @@ export default function FarmReportsPage({ params }: { params: Promise<{ farmId: 
 
   const fetchReports = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/credit-applications/by-farm/${farmId}`);
+      const response = await fetch(`${process.env.BACKEND_URL}/credit-applications/by-farm/${farmId}`);
       if (response.ok) {
         const data = await response.json();
         setReports(data);
@@ -42,7 +42,7 @@ export default function FarmReportsPage({ params }: { params: Promise<{ farmId: 
   const handleDelete = async (id: string) => {
     setDeleting(true);
     try {
-      const response = await fetch(`http://localhost:8000/credit-applications/${id}`, {
+      const response = await fetch(`${process.env.BACKEND_URL}/credit-applications/${id}`, {
         method: "DELETE",
       });
       if (response.ok) {

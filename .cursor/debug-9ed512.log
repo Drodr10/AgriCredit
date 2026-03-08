@@ -1,0 +1,2 @@
+{"sessionId":"9ed512","location":"apply/page.tsx:fetchFarms","message":"fetchFarms called","data":{"clerkId":"user_3AeYo09ulKxgDV01dKDc6KR8xKj","email":"prana..."},"timestamp":1772965825881,"hypothesisId":"H1"}
+{"sessionId":"9ed512","location":"apply/page.tsx:fetchFarms-response","message":"fetchFarms response","data":{"status":200,"ok":true},"timestamp":1772965826148,"hypothesisId":"H2"}

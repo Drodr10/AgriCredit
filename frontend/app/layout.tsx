@@ -57,23 +57,12 @@ export default function RootLayout({
             <div className="flex items-center gap-4">
               <Show when="signed-out">
                 <SignInButton mode="modal" forceRedirectUrl="/dashboard">
-                  <button className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer">
-                    Sign In
-                  </button>
-                </SignInButton>
-                <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
                   <button className="rounded bg-green-800 px-5 py-2 text-sm font-semibold text-white hover:bg-green-700 transition-colors cursor-pointer">
                     Get Started
                   </button>
-                </SignUpButton>
+                </SignInButton>
               </Show>
               <Show when="signed-in">
-                <a
-                  href="/dashboard"
-                  className="rounded bg-green-800 px-5 py-2 text-sm font-semibold text-white hover:bg-green-700 transition-colors"
-                >
-                  Dashboard
-                </a>
                 <UserButton />
               </Show>
             </div>

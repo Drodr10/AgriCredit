@@ -75,7 +75,7 @@ function EditFarmContent() {
     try {
       const clerkId = user?.id;
       const email = user?.primaryEmailAddress?.emailAddress || "";
-      const response = await fetch(`http://localhost:8000/users/me?clerk_id=${clerkId}&email=${email}`);
+      const response = await fetch(`${process.env.BACKEND_URL}/users/me?clerk_id=${clerkId}&email=${email}`);
       if (response.ok) {
         const data = await response.json();
         const farm = (data.farms || []).find((f: any) => f.id === farmId);
@@ -101,7 +101,7 @@ function EditFarmContent() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      const response = await fetch(`http://localhost:8000/users/me/farms/${farmId}?clerk_id=${user?.id}`, {
+      const response = await fetch(`${process.env.BACKEND_URL}/users/me/farms/${farmId}?clerk_id=${user?.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),

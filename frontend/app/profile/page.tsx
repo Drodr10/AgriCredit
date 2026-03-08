@@ -26,7 +26,7 @@ export default function ProfilePage() {
     try {
       const clerkId = user?.id;
       const email = user?.primaryEmailAddress?.emailAddress || "";
-      const response = await fetch(`http://localhost:8000/users/me?clerk_id=${clerkId}&email=${email}`);
+      const response = await fetch(`${process.env.BACKEND_URL}/users/me?clerk_id=${clerkId}&email=${email}`);
       if (response.ok) {
         const data = await response.json();
         setFormData({
@@ -53,7 +53,7 @@ export default function ProfilePage() {
       if (formData.phone) payload.phone = formData.phone;
       if (formData.national_id) payload.national_id = formData.national_id;
 
-      const response = await fetch(`http://localhost:8000/users/me/profile?clerk_id=${user?.id}`, {
+      const response = await fetch(`${process.env.BACKEND_URL}/users/me/profile?clerk_id=${user?.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
