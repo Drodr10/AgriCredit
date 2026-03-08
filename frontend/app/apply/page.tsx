@@ -4,6 +4,8 @@ import { useUser } from "@clerk/nextjs";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { useVoiceContext } from "../../components/VoiceProvider";
+import { VoiceInput } from "../../components/VoiceInput";
 
 const LOAN_PURPOSES = [
   { id: "seeds", label: "Seeds & Sowing" },

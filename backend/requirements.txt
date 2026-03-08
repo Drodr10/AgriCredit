@@ -1,3 +1,11 @@
+motor>=3.4.0
+python-multipart>=0.0.9
+python-jose>=3.3.0
+passlib>=1.7.4
+bcrypt>=4.1.2
+fpdf>=1.7.2
+elevenlabs>=1.4.10
+google-genai>=1.0.0
 fastapi==0.115.12
 uvicorn[standard]==0.34.0
 pymongo==4.10.1

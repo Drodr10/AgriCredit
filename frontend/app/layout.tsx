@@ -8,6 +8,8 @@ import {
   UserButton,
 } from "@clerk/nextjs";
 import "./globals.css";
+import { VoiceProvider } from "../components/VoiceProvider";
+import { LanguageSelector } from "../components/LanguageSelector";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -29,6 +31,7 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={`${dmSans.className} antialiased`} suppressHydrationWarning>
         <ClerkProvider>
+          <VoiceProvider>
           <header className="flex items-center justify-between px-6 lg:px-10 bg-white border-b border-gray-200 sticky top-0 z-50 h-16">
             <a href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
               <svg className="w-7 h-7 text-green-800" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -55,6 +58,7 @@ export default function RootLayout({
             </nav>
 
             <div className="flex items-center gap-4">
+              <LanguageSelector />
               <Show when="signed-out">
                 <SignInButton mode="modal" forceRedirectUrl="/dashboard">
                   <button className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer">
@@ -73,6 +77,7 @@ export default function RootLayout({
             </div>
           </header>
           {children}
+          </VoiceProvider>
         </ClerkProvider>
       </body>
     </html>

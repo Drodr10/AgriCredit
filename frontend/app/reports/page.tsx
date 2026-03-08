@@ -3,6 +3,9 @@
 import { useUser, RedirectToSignIn } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useVoiceContext } from "../../components/VoiceProvider";
+import { VoiceInput } from "../../components/VoiceInput";
+import { useVoiceAssistant } from "../../hooks/useVoice";
 
 interface Farm {
   id: string;
@@ -24,6 +27,55 @@ interface Report {
 
 export default function AllReportsPage() {
   const { isLoaded, isSignedIn, user } = useUser();
+  const { lang, isVoiceEnabled } = useVoiceContext();
+  const { speak } = useVoiceAssistant(lang);
+
+  const t = {
+    hi: {
+      title: "सभी रिपोर्ट",
+      stats: "क्रेडिट रिपोर्ट",
+      across: "खेतों में",
+      new_report: "नई रिपोर्ट",
+      no_reports: "अभी तक कोई रिपोर्ट नहीं",
+      apply_now: "अभी आवेदन करें",
+      risk: "जोखिम",
+      view: "रिपोर्ट देखें",
+      delete: "रिपोर्ट हटाएं"
+    },
+    pa: {
+      title: "ਸਾਰੀਆਂ ਰਿਪੋਰਟਾਂ",
+      stats: "ਕ੍ਰੈਡਿਟ ਰਿਪੋਰਟਾਂ",
+      across: "ਖੇਤਾਂ ਵਿੱਚ",
+      new_report: "ਨਵੀਂ ਰਿਪੋਰਟ",
+      no_reports: "ਅਜੇ ਤੱਕ ਕੋਈ ਰਿਪੋਰਟ ਨਹੀਂ",
+      apply_now: "ਹੁਣੇ ਅਪਲਾਈ ਕਰੋ",
+      risk: "ਖਤਰਾ",
+      view: "ਰਿਪੋਰਟ ਦੇਖੋ",
+      delete: "ਰਿਪੋਰਟ ਹਟਾਓ"
+    },
+    en: {
+      title: "All Reports",
+      stats: "credit reports",
+      across: "across",
+      new_report: "NEW REPORT",
+      no_reports: "No Reports Yet",
+      apply_now: "Apply Now",
+      risk: "risk",
+      view: "View Report",
+      delete: "Delete Report"
+    }
+  }[lang as 'hi' | 'pa' | 'en'] || {
+    title: "All Reports",
+    stats: "credit reports",
+    across: "across",
+    new_report: "NEW REPORT",
+    no_reports: "No Reports Yet",
+    apply_now: "Apply Now",
+    risk: "risk",
+    view: "View Report",
+    delete: "Delete Report"
+  };
+
   const [reports, setReports] = useState<Report[]>([]);
   const [farms, setFarms] = useState<Farm[]>([]);
   const [loading, setLoading] = useState(true);
@@ -104,21 +156,22 @@ export default function AllReportsPage() {
         <header className="flex justify-between items-end mb-12 border-b border-gray-100 pb-8">
           <div>
             <h1 className="text-4xl font-black tracking-tighter mb-2 uppercase bg-gradient-to-r from-[#1a4a2e] to-[#d4a017] bg-clip-text text-transparent">
-              All <span className="italic">Reports</span>
+              {t.title.split(' ')[0]} <span className="italic">{t.title.split(' ')[1] || ""}</span>
             </h1>
             <p className="text-slate-400 font-medium font-mono uppercase tracking-[0.2em]">
-              {reports.length} credit report{reports.length !== 1 ? "s" : ""} across {farms.length} farm{farms.length !== 1 ? "s" : ""}
+              {reports.length} {t.stats}{reports.length !== 1 && lang === 'en' ? "s" : ""} {t.across} {farms.length} farm{farms.length !== 1 && lang === 'en' ? "s" : ""}
             </p>
           </div>
-          <Link
-            href="/apply"
-            className="group flex items-center gap-2 bg-green-800 hover:bg-green-700 text-white font-black px-6 py-3 rounded-xl transition-all hover:-translate-y-1 shadow-xl shadow-green-800/20"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
-            </svg>
-            NEW REPORT
-          </Link>
+            <Link
+              href="/apply"
+              className="group flex items-center gap-2 bg-green-800 hover:bg-green-700 text-white font-black px-6 py-3 rounded-xl transition-all hover:-translate-y-1 shadow-xl shadow-green-800/20"
+              onMouseEnter={() => speak("New Report", "inputs")}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
+              </svg>
+              {t.new_report}
+            </Link>
         </header>
 
         {reports.length === 0 ? (
@@ -128,13 +181,14 @@ export default function AllReportsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold mb-3 text-slate-900">No Reports Yet</h2>
+            <h2 className="text-2xl font-bold mb-3 text-slate-900">{t.no_reports}</h2>
             <p className="text-slate-400 mb-8 max-w-sm mx-auto">Apply for credit on any of your farms to generate AI-powered risk reports.</p>
             <Link
               href="/apply"
               className="inline-block bg-green-800 hover:bg-green-700 text-white font-black py-4 px-10 rounded-2xl transition-all uppercase tracking-widest shadow-xl"
+              onMouseEnter={() => speak("Apply Now", "inputs")}
             >
-              Apply Now
+              {t.apply_now}
             </Link>
           </div>
         ) : (

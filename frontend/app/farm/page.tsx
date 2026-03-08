@@ -5,6 +5,8 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import dynamic from "next/dynamic";
+import { useVoiceContext } from "../../components/VoiceProvider";
+import { VoiceInput } from "../../components/VoiceInput";
 
 const LocationMap = dynamic(() => import("@/app/components/LocationMap"), {
   ssr: false,

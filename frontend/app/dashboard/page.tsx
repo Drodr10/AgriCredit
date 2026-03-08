@@ -3,6 +3,8 @@
 import { useUser, RedirectToSignIn } from "@clerk/nextjs";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { useVoiceContext } from "../../components/VoiceProvider";
+import { useVoiceAssistant } from "../../hooks/useVoice";
 
 interface Farm {
   id: string;
@@ -50,6 +52,8 @@ export default function Dashboard() {
 
 function FarmerView({ farms, setUserData, clerkId }: { farms: Farm[], setUserData: any, clerkId: string }) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { lang } = useVoiceContext();
+  const { speak } = useVoiceAssistant(lang);
 
   const handleDeleteFarm = async (farmId: string, farmName: string) => {
     if (!window.confirm(`Are you sure you want to delete ${farmName}? This will also delete ALL credit reports permanently.`)) {
@@ -90,6 +94,7 @@ function FarmerView({ farms, setUserData, clerkId }: { farms: Farm[], setUserDat
                 <Link 
                   href="/reports" 
                   className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold text-sm px-5 py-2.5 rounded border border-gray-200 transition-colors"
+                  onMouseEnter={() => speak("All Reports", "account")}
                 >
                   <svg className="w-4 h-4 text-green-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -99,6 +104,7 @@ function FarmerView({ farms, setUserData, clerkId }: { farms: Farm[], setUserDat
                 <Link 
                   href="/apply" 
                   className="flex items-center gap-2 bg-white hover:bg-gray-50 text-gray-700 font-semibold text-sm px-5 py-2.5 rounded border border-gray-200 transition-colors"
+                  onMouseEnter={() => speak("Apply for Credit", "inputs")}
                 >
                   <svg className="w-4 h-4 text-green-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -111,6 +117,7 @@ function FarmerView({ farms, setUserData, clerkId }: { farms: Farm[], setUserDat
             <Link 
               href="/farm" 
               className="flex items-center gap-2 bg-green-800 hover:bg-green-700 text-white font-semibold text-sm px-5 py-2.5 rounded transition-colors"
+              onMouseEnter={() => speak("Add New Farm", "account")}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
