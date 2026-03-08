@@ -12,9 +12,9 @@ import {
 } from '../data/india-drought-data';
 
 const INITIAL_VIEW_STATE = {
-  latitude: 22,
+  latitude: 20,
   longitude: 78,
-  zoom: 3.5,
+  zoom: 1.5,
 };
 
 interface HoverInfo {

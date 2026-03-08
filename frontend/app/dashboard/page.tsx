@@ -1,6 +1,6 @@
 "use client";
 
-import { useUser } from "@clerk/nextjs";
+import { useUser, RedirectToSignIn } from "@clerk/nextjs";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -39,17 +39,7 @@ export default function Dashboard() {
   if (!isLoaded || loading) return null;
 
   if (!isSignedIn) {
-    return (
-      <div className="min-h-screen bg-slate-950 flex items-center justify-center p-6 text-center">
-        <div className="max-w-md">
-          <h1 className="text-3xl font-bold text-white mb-4">Access Denied</h1>
-          <p className="text-slate-400 mb-8 text-lg">Please sign in to view your agricultural dashboard.</p>
-          <Link href="/" className="bg-green-600 hover:bg-green-500 text-white font-bold py-3 px-8 rounded-xl transition-all">
-            Return Home
-          </Link>
-        </div>
-      </div>
-    );
+    return <RedirectToSignIn />;
   }
 
   const role = userData?.role;
