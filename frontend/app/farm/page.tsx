@@ -1,9 +1,20 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import dynamic from "next/dynamic";
+
+const LocationMap = dynamic(() => import("@/app/components/LocationMap"), {
+  ssr: false,
+  loading: () => (
+    <div className="h-72 bg-white rounded-3xl border border-gray-200 border-dashed flex flex-col items-center justify-center text-slate-300 gap-4 shadow-sm">
+      <div className="w-6 h-6 border-2 border-green-800 border-t-transparent rounded-full animate-spin"></div>
+      <span className="font-bold uppercase tracking-widest text-xs">Loading Map...</span>
+    </div>
+  ),
+});
 
 const SOIL_TYPES = [
   { id: "brown", name: "Normal Brown", desc: "Fertile, loam soil", image: "/onboarding/soil_brown.png" },
@@ -35,8 +46,9 @@ export default function OnboardingFlow() {
     soil_category: "",
     irrigation_type: "",
     machinery_type: "",
-    farm_size_hectares: 0,
+    farm_size_hectares: 1,
     national_id: "",
+    gps_coordinates: "",
   });
 
   const nextStep = () => setStep((s) => s + 1);
@@ -132,14 +144,10 @@ export default function OnboardingFlow() {
                     onChange={(e) => setFormData({ ...formData, location: e.target.value })}
                   />
                 </div>
-                <div className="h-64 bg-white rounded-3xl border border-gray-200 border-dashed flex flex-col items-center justify-center text-slate-300 gap-4 overflow-hidden relative shadow-sm">
-                   <div className="absolute inset-0 bg-green-50/50 blur-3xl rounded-full translate-y-1/2"></div>
-                   <svg className="w-12 h-12 text-green-800/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                   </svg>
-                   <span className="font-bold uppercase tracking-widest text-xs">Interactive Map Module Loading...</span>
-                </div>
+                <LocationMap
+                  coordinates={formData.gps_coordinates}
+                  onCoordinatesChange={(coords: string) => setFormData({ ...formData, gps_coordinates: coords })}
+                />
               </div>
             </div>
           )}
@@ -241,7 +249,7 @@ export default function OnboardingFlow() {
                    </div>
                    <input 
                       type="range" 
-                      min="0" 
+                      min="1" 
                       max="500" 
                       step="1"
                       className="w-full h-4 bg-slate-100 rounded-full appearance-none cursor-pointer accent-green-800 ring-1 ring-gray-200"
@@ -249,7 +257,7 @@ export default function OnboardingFlow() {
                       onChange={(e) => setFormData({ ...formData, farm_size_hectares: parseFloat(e.target.value) })}
                    />
                    <div className="flex justify-between text-xs font-bold text-slate-300 mt-4 uppercase tracking-tighter">
-                      <span>Small Scale (0)</span>
+                      <span>Small Scale (1)</span>
                       <span>Industrial Scale (500)</span>
                    </div>
                 </div>
@@ -285,9 +293,9 @@ export default function OnboardingFlow() {
             )}
             <button 
               onClick={step === 5 ? handleSubmit : nextStep}
-              disabled={step === 1 && !formData.name}
+              disabled={(step === 1 && !formData.name) || (step === 5 && formData.farm_size_hectares < 1)}
               className={`flex-1 py-5 rounded-2xl font-black uppercase text-sm tracking-[0.2em] transition-all shadow-xl ${
-                step === 1 && !formData.name 
+                (step === 1 && !formData.name) || (step === 5 && formData.farm_size_hectares < 1)
                 ? "bg-slate-100 text-slate-300 cursor-not-allowed" 
                 : "bg-green-800 hover:bg-green-700 text-white hover:shadow-green-800/40 hover:-translate-y-1"
               }`}

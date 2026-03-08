@@ -93,6 +93,38 @@ def list_applications() -> list[Any]:
     return results
 
 
+@router.get("/by-farm/{farm_id}", response_model=list[CreditApplication])
+def list_applications_by_farm(farm_id: str) -> list[Any]:
+    db = _get_db()
+    cursor = db.credit_applications.find({"farmer_id": farm_id}).sort("created_at", -1)
+    docs = list(cursor.limit(50))
+    results = []
+    for doc in docs:
+        d = doc_to_dict(doc)
+        d["id"] = d.pop("_id", d.get("id", ""))
+        results.append(d)
+    return results
+
+
+@router.get("/by-user/{clerk_id}", response_model=list[CreditApplication])
+def list_applications_by_user(clerk_id: str) -> list[Any]:
+    db = _get_db()
+    user_doc = db.users.find_one({"clerk_id": clerk_id})
+    if not user_doc:
+        return []
+    farm_ids = [f.get("id") for f in user_doc.get("farms", []) if f.get("id")]
+    if not farm_ids:
+        return []
+    cursor = db.credit_applications.find({"farmer_id": {"$in": farm_ids}}).sort("created_at", -1)
+    docs = list(cursor.limit(100))
+    results = []
+    for doc in docs:
+        d = doc_to_dict(doc)
+        d["id"] = d.pop("_id", d.get("id", ""))
+        results.append(d)
+    return results
+
+
 @router.post(
     "/",
     response_model=CreditApplication,
