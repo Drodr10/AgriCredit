@@ -78,7 +78,7 @@ class UserBase(BaseModel):
     email: str = Field(..., max_length=255)
     clerk_id: str = Field(..., max_length=100)
     phone: str | None = Field(default=None, max_length=20)
-    role: str | None = Field(default=None, max_length=50)
+    role: str | None = Field(default="farmer", max_length=50)
     birthday: date | None = Field(default=None)
     national_id: str | None = Field(default=None, max_length=50)
     experience_years: int | None = Field(default=None, ge=0)

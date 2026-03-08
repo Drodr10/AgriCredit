@@ -32,6 +32,7 @@ def get_current_user(clerk_id: str, email: str | None = None):
         user_in_db = UserInDB(
             clerk_id=clerk_id, 
             email=email or "pending@user.com",
+            role="farmer",
             created_at=now,
             updated_at=now
         )
@@ -45,9 +46,9 @@ def get_current_user(clerk_id: str, email: str | None = None):
     
     d = doc_to_dict(user_doc)
     d["id"] = d.pop("_id", "")
-    # Ensure role is explicitly None if missing
-    if "role" not in d:
-        d["role"] = None
+    # Ensure role is explicitly farmer if missing for existing users
+    if not d.get("role"):
+        d["role"] = "farmer"
     return d
 
 @router.post("/", response_model=User, status_code=status.HTTP_201_CREATED)
@@ -194,3 +195,29 @@ def update_farm(clerk_id: str, farm_id: str, payload: dict = Body(...)):
     updated_farm = next(f for f in updated_user["farms"] if f.get("id") == farm_id)
     return updated_farm
 
+
+@router.delete("/me/farms/{farm_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_farm(clerk_id: str, farm_id: str):
+    db = _get_db()
+    user_doc = db.users.find_one({"clerk_id": clerk_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Check if farm exists for this user
+    farms = user_doc.get("farms", [])
+    if not any(f.get("id") == farm_id for f in farms):
+        raise HTTPException(status_code=404, detail="Farm not found")
+
+    # Remove the farm from the user's array
+    result = db.users.update_one(
+        {"clerk_id": clerk_id},
+        {"$pull": {"farms": {"id": farm_id}}, "$set": {"updated_at": datetime.now(timezone.utc)}}
+    )
+
+    if result.modified_count == 0:
+        raise HTTPException(status_code=500, detail="Failed to delete farm from user profile")
+
+    # Cascade delete all credit applications associated with this farm
+    db.credit_applications.delete_many({"farmer_id": farm_id, "clerk_id": clerk_id})
+
+    return None
