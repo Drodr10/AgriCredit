@@ -97,8 +97,49 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════════ HOW IT WORKS ═══════════════ */}
+      {/* ═══════════════ WHY AGRICREDIT ═══════════════ */}
       <section className="py-20 lg:py-24 border-t border-gray-100">
+        <div className="max-w-5xl mx-auto px-6 lg:px-10">
+          <Reveal>
+            <p className="text-sm font-semibold uppercase tracking-widest text-green-800 mb-2">Benefits</p>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Why AgriCredit</h2>
+            <p className="text-base text-gray-500 max-w-xl mb-16">
+              Traditional credit scoring fails agriculture. We built an alternative that works.
+            </p>
+          </Reveal>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {[
+              {
+                title: "Helps farmers without credit history",
+                desc: "Over 80% of small Indian farmers lack formal credit records. AgriCredit uses farm-level environmental and market data instead.",
+              },
+              {
+                title: "Uses weather, crop & market data",
+                desc: "We pull IMD monsoon forecasts, ICRISAT yield records, SPEI drought indices, and AgMarkNet commodity prices automatically.",
+              },
+              {
+                title: "Provides transparent AI explanations",
+                desc: "Every risk score includes a plain-language breakdown of contributing factors, so farmers and lenders both understand the reasoning.",
+              },
+              {
+                title: "Unlock better loan terms",
+                desc: "Equip yourself with the same data-driven risk profiles used by financial institutions to negotiate confidently for lower rates and fairer loans.",
+              },
+            ].map((b) => (
+              <Reveal key={b.title}>
+                <div className="border border-gray-200 rounded bg-white p-6 h-full">
+                  <h3 className="text-base font-semibold text-gray-900 mb-2">{b.title}</h3>
+                  <p className="text-sm text-gray-500 leading-relaxed">{b.desc}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════════ HOW IT WORKS ═══════════════ */}
+      <section className="py-20 lg:py-24 bg-gray-50 border-t border-gray-100">
         <div className="max-w-5xl mx-auto px-6 lg:px-10">
           <Reveal>
             <p className="text-sm font-semibold uppercase tracking-widest text-green-800 mb-2">Process</p>
@@ -137,47 +178,6 @@ export default function Home() {
                   <div className="text-green-800 mb-4">{s.icon}</div>
                   <h3 className="text-base font-semibold text-gray-900 mb-2">{s.title}</h3>
                   <p className="text-sm text-gray-500 leading-relaxed">{s.desc}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════════════ WHY AGRICREDIT ═══════════════ */}
-      <section className="py-20 lg:py-24 bg-gray-50 border-t border-gray-100">
-        <div className="max-w-5xl mx-auto px-6 lg:px-10">
-          <Reveal>
-            <p className="text-sm font-semibold uppercase tracking-widest text-green-800 mb-2">Benefits</p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Why AgriCredit</h2>
-            <p className="text-base text-gray-500 max-w-xl mb-16">
-              Traditional credit scoring fails agriculture. We built an alternative that works.
-            </p>
-          </Reveal>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            {[
-              {
-                title: "Helps farmers without credit history",
-                desc: "Over 80% of small Indian farmers lack formal credit records. AgriCredit uses farm-level environmental and market data instead.",
-              },
-              {
-                title: "Uses weather, crop & market data",
-                desc: "We pull IMD monsoon forecasts, ICRISAT yield records, SPEI drought indices, and AgMarkNet commodity prices automatically.",
-              },
-              {
-                title: "Provides transparent AI explanations",
-                desc: "Every risk score includes a plain-language breakdown of contributing factors, so farmers and lenders both understand the reasoning.",
-              },
-              {
-                title: "Unlock better loan terms",
-                desc: "Equip yourself with the same data-driven risk profiles used by financial institutions to negotiate confidently for lower rates and fairer loans.",
-              },
-            ].map((b) => (
-              <Reveal key={b.title}>
-                <div className="border border-gray-200 rounded bg-white p-6 h-full">
-                  <h3 className="text-base font-semibold text-gray-900 mb-2">{b.title}</h3>
-                  <p className="text-sm text-gray-500 leading-relaxed">{b.desc}</p>
                 </div>
               </Reveal>
             ))}
