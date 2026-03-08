@@ -2,6 +2,10 @@
 
 import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
+import { HeatmapChart } from "./components/charts/HeatmapChart";
+import { PortfolioRiskChart } from "./components/charts/PortfolioRiskChart";
+import { ROCCurveChart } from "./components/charts/ROCCurveChart";
+import { ConfusionMatrixChart } from "./components/charts/ConfusionMatrixChart";
 
 /* ── Scroll-reveal wrapper (subtle opacity only, no translate) ── */
 
@@ -234,83 +238,52 @@ export default function Home() {
 
       {/* ═══════════════ QUANTITATIVE ANALYSIS ═══════════════ */}
       <section className="py-20 lg:py-24 bg-gray-50 border-t border-gray-100">
-        <div className="max-w-5xl mx-auto px-6 lg:px-10">
+        <div className="max-w-6xl mx-auto px-6 lg:px-10">
           <Reveal>
-            <p className="text-sm font-semibold uppercase tracking-widest text-green-800 mb-2">Analytics</p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Quantitative Risk Analysis</h2>
-            <p className="text-base text-gray-500 max-w-xl mb-16">
-              Data-driven insights that give you the confidence to manage agricultural risks at scale.
-            </p>
-          </Reveal>
+            <div className="rounded-2xl border border-[#d3dbe7] bg-[#f4f6fa] p-6 lg:p-8">
+              <h2 className="text-2xl sm:text-3xl font-semibold text-[#425778] mb-8 text-center">
+                Why Agricredit Wins: Unrivaled Risk Performance (Generalization + Overfitting Tests)
+              </h2>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
-            {[
-              { value: "700+", label: "Districts Covered" },
-              { value: "96.4%", label: "Model Accuracy" },
-              { value: "< 2 min", label: "Assessment Time" },
-            ].map((m) => (
-              <Reveal key={m.label}>
-                <div className="border border-gray-200 bg-white rounded p-4 text-center">
-                  <p className="text-2xl font-bold text-green-800 mb-1">{m.value}</p>
-                  <p className="text-xs text-gray-500">{m.label}</p>
-                </div>
-              </Reveal>
-            ))}
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {[
-              {
-                title: "Regional Risk Heatmap",
-                desc: "District-level drought and yield risk visualization across all major agricultural regions.",
-                chart: (
-                  <svg className="w-full h-full text-green-700/20" viewBox="0 0 100 40" preserveAspectRatio="none">
-                    <rect x="10" y="10" width="15" height="15" rx="2" fill="currentColor" fillOpacity="0.8" />
-                    <rect x="30" y="10" width="15" height="15" rx="2" fill="currentColor" fillOpacity="0.4" />
-                    <rect x="50" y="10" width="15" height="15" rx="2" fill="currentColor" fillOpacity="1" />
-                    <rect x="70" y="10" width="15" height="15" rx="2" fill="currentColor" fillOpacity="0.2" />
-                    <rect x="10" y="30" width="15" height="15" rx="2" fill="currentColor" fillOpacity="0.3" />
-                    <rect x="30" y="30" width="15" height="15" rx="2" fill="currentColor" fillOpacity="0.9" />
-                    <rect x="50" y="30" width="15" height="15" rx="2" fill="currentColor" fillOpacity="0.5" />
-                    <rect x="70" y="30" width="15" height="15" rx="2" fill="currentColor" fillOpacity="0.7" />
-                  </svg>
-                )
-              },
-              {
-                title: "Seasonal Trend Analysis",
-                desc: "Historical crop performance and weather pattern trends across Kharif, Rabi, and Zaid seasons.",
-                chart: (
-                   <svg className="w-full h-full text-green-600" viewBox="0 0 100 40" preserveAspectRatio="none">
-                     <path d="M0,35 Q15,10 30,25 T60,15 T100,5" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                     <circle cx="30" cy="25" r="3" fill="currentColor" />
-                     <circle cx="60" cy="15" r="3" fill="currentColor" />
-                     <circle cx="100" cy="5" r="3" fill="currentColor" />
-                   </svg>
-                )
-              },
-              {
-                title: "Portfolio Risk Distribution",
-                desc: "Aggregate risk scoring across your lending portfolio with breakdown by region, crop, and season.",
-                chart: (
-                   <svg className="w-full h-full text-green-700" viewBox="0 0 100 40" preserveAspectRatio="none" stroke="currentColor" strokeWidth="2">
-                     <line x1="20" y1="40" x2="20" y2="15" strokeLinecap="round" opacity="0.4" />
-                     <line x1="50" y1="40" x2="50" y2="5" strokeLinecap="round" opacity="0.9" />
-                     <line x1="80" y1="40" x2="80" y2="25" strokeLinecap="round" opacity="0.6" />
-                   </svg>
-                )
-              },
-            ].map((c) => (
-              <Reveal key={c.title}>
-                <div className="border border-gray-200 bg-white rounded p-6 h-full flex flex-col">
-                  <div className="w-full h-32 bg-green-50/50 rounded-xl flex items-center justify-center mb-6 overflow-hidden p-6 border border-green-100/50">
-                    {c.chart}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="min-h-[290px]">
+                  <h3 className="text-[30px] font-semibold text-[#4a5f80] mb-2 text-center">
+                    1. Generalization AUC (Shifted Holdout - Primary Metric)
+                  </h3>
+                  <div className="h-[280px] sm:h-[300px]">
+                    <HeatmapChart />
                   </div>
-                  <h3 className="text-sm font-semibold text-gray-900 mb-1">{c.title}</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">{c.desc}</p>
                 </div>
-              </Reveal>
-            ))}
-          </div>
+
+                <div className="min-h-[290px]">
+                  <h3 className="text-[30px] font-semibold text-[#4a5f80] mb-2 text-center">
+                    2. ROC Curves (XGBoost vs Traditional)
+                  </h3>
+                  <div className="h-[280px] sm:h-[300px]">
+                    <ROCCurveChart />
+                  </div>
+                </div>
+
+                <div className="min-h-[290px]">
+                  <h3 className="text-[30px] font-semibold text-[#4a5f80] mb-2 text-center">
+                    3. XGBoost Confusion Matrix (Production)
+                  </h3>
+                  <div className="h-[280px] sm:h-[300px]">
+                    <ConfusionMatrixChart />
+                  </div>
+                </div>
+
+                <div className="min-h-[290px]">
+                  <h3 className="text-[30px] font-semibold text-[#4a5f80] mb-2 text-center">
+                    4. Overfit Gap (Train - Test AUC)
+                  </h3>
+                  <div className="h-[280px] sm:h-[300px]">
+                    <PortfolioRiskChart />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Reveal>
         </div>
       </section>
 

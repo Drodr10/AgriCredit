@@ -1,0 +1,44 @@
+{
+  "data": [
+    {
+      "district": "Ludhiana",
+      "crop": "rice",
+      "season": "kharif",
+      "risk_score": 59.6,
+      "risk_level": "MEDIUM",
+      "probability_of_default": 59.6,
+      "yield_potential": 1.66,
+      "rainfall_pct": 149.9
+    },
+    {
+      "district": "Ludhiana",
+      "crop": "rice",
+      "season": "rabi",
+      "risk_score": 59.6,
+      "risk_level": "MEDIUM",
+      "probability_of_default": 59.6,
+      "yield_potential": 1.66,
+      "rainfall_pct": 149.9
+    },
+    {
+      "district": "Ludhiana",
+      "crop": "wheat",
+      "season": "kharif",
+      "risk_score": 58.0,
+      "risk_level": "MEDIUM",
+      "probability_of_default": 58.0,
+      "yield_potential": 1.79,
+      "rainfall_pct": 149.9
+    },
+    {
+      "district": "Ludhiana",
+      "crop": "wheat",
+      "season": "rabi",
+      "risk_score": 58.0,
+      "risk_level": "MEDIUM",
+      "probability_of_default": 58.0,
+      "yield_potential": 1.79,
+      "rainfall_pct": 149.9
+    }
+  ]
+}

@@ -207,6 +207,23 @@ fig.add_trace(go.Bar(
 fpr_win, tpr_win, _ = roc_curve(y_test, final_models[winner_name].predict_proba(X_test)[:, 1])
 fpr_log, tpr_log, _ = roc_curve(y_test, final_models['Logistic (Banks)'].predict_proba(X_test)[:, 1])
 
+# Export real ROC points so frontend can render exact curves.
+roc_export = {
+    'winner_name': winner_name,
+    'baseline_name': 'Logistic (Banks)',
+    'winner': {
+        'fpr': [float(x) for x in fpr_win.tolist()],
+        'tpr': [float(y) for y in tpr_win.tolist()],
+    },
+    'baseline': {
+        'fpr': [float(x) for x in fpr_log.tolist()],
+        'tpr': [float(y) for y in tpr_log.tolist()],
+    }
+}
+with open('roc_curves.json', 'w') as f:
+    json.dump(roc_export, f, indent=2)
+print('SAVED ROC points: roc_curves.json')
+
 fig.add_trace(go.Scatter(x=fpr_log, y=tpr_log, name='Bank Baseline', line=dict(color='#888888', width=2)), row=1, col=2)
 fig.add_trace(go.Scatter(x=fpr_win, y=tpr_win, name=f'Winner: {winner_name}', line=dict(color='#FFD700', width=3)), row=1, col=2)
 fig.add_trace(go.Scatter(x=[0, 1], y=[0, 1], showlegend=False, line=dict(color='black', dash='dash')), row=1, col=2)

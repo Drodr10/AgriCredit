@@ -9,4 +9,7 @@ pandas==2.2.2
 joblib==1.4.2
 numpy==1.26.4
 xgboost==2.1.1
+lightgbm==4.5.0
+catboost==1.2.8
+plotly==6.3.0
 google-genai>=1.0.0

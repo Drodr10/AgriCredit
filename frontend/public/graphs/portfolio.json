@@ -1,0 +1,52 @@
+{
+  "summary": {
+    "total_assessments": 4,
+    "low_risk_count": 0,
+    "medium_risk_count": 4,
+    "high_risk_count": 0,
+    "low_risk_pct": 0.0,
+    "medium_risk_pct": 100.0,
+    "high_risk_pct": 0.0
+  },
+  "by_crop": {
+    "wheat": {
+      "low": 0,
+      "medium": 2,
+      "high": 0
+    },
+    "rice": {
+      "low": 0,
+      "medium": 2,
+      "high": 0
+    }
+  },
+  "by_season": {
+    "rabi": {
+      "low": 0,
+      "medium": 2,
+      "high": 0
+    },
+    "kharif": {
+      "low": 0,
+      "medium": 2,
+      "high": 0
+    }
+  },
+  "distribution": [
+    {
+      "name": "Low Risk",
+      "value": 0,
+      "percentage": 0.0
+    },
+    {
+      "name": "Medium Risk",
+      "value": 4,
+      "percentage": 100.0
+    },
+    {
+      "name": "High Risk",
+      "value": 0,
+      "percentage": 0.0
+    }
+  ]
+}

@@ -1,6 +1,8 @@
 import os
 import sys
+import json
 from pathlib import Path
+from typing import Dict, List, Any
 
 # Fix 'ModuleNotFoundError: No module named app' 
 # Insert the 'backend' dir into the system path so 'app.x' imports resolve
@@ -40,6 +42,193 @@ def print_scenario_result(name: str, result: dict, features: dict):
         for line in summary:
             print(f"  - {line}")
 
+def generate_heatmap_data(pipeline: RealDataPipeline, model: AgricreditModel) -> List[Dict[str, Any]]:
+    """Generate district-level risk heatmap data"""
+    print("\n📊 Generating Regional Risk Heatmap Data...")
+    
+    # Sample major agricultural districts in India
+    districts = [
+        "Ludhiana", "Indore", "Akola", "Nashik", "Khanna",
+        "Hisar", "Kota", "Belgaum", "Bijnor", "Meerut"
+    ]
+    
+    crops = ["rice", "wheat"]
+    seasons = ["kharif", "rabi"]
+    
+    heatmap_data = []
+    
+    for district in districts:
+        for crop in crops:
+            for season in seasons:
+                try:
+                    features = pipeline.get_district_features(district, crop, season)
+                    farm_data = {
+                        "district": district,
+                        "crop": crop,
+                        "season": season,
+                        "farm_size_ha": 2.5,
+                        "irrigation": "canal",
+                        "experience": "average",
+                        "loan_amount": 50000
+                    }
+                    result = model.predict_risk(farm_data, base_features=features)
+                    
+                    pd = result.get('pd', 0)
+                    risk_tier = result.get('risk_tier', 'MEDIUM')
+                    
+                    # Convert PD to risk score (0-100)
+                    risk_score = min(100, max(0, pd * 100))
+                    
+                    # Determine risk color
+                    if risk_score < 40:
+                        risk_level = "LOW"
+                    elif risk_score < 65:
+                        risk_level = "MEDIUM"
+                    else:
+                        risk_level = "HIGH"
+                    
+                    heatmap_data.append({
+                        "district": district,
+                        "crop": crop,
+                        "season": season,
+                        "risk_score": round(risk_score, 1),
+                        "risk_level": risk_level,
+                        "probability_of_default": round(pd * 100, 1),
+                        "yield_potential": round(features.get('yieldavg', 0), 2),
+                        "rainfall_pct": round(features.get('rainfallpct', 100), 1)
+                    })
+                except Exception as e:
+                    print(f"  ⚠️  Skipped {district}/{crop}/{season}: {str(e)[:30]}")
+                    continue
+    
+    return heatmap_data
+
+def generate_seasonal_trend_data(pipeline: RealDataPipeline, model: AgricreditModel) -> List[Dict[str, Any]]:
+    """Generate seasonal trend analysis showing performance across seasons"""
+    print("\n📈 Generating Seasonal Trend Data...")
+    
+    # Focus on Ludhiana for detailed seasonal breakdown
+    district = "Ludhiana"
+    crops = ["rice", "wheat"]
+    seasons = ["kharif", "rabi"]
+    
+    seasonal_data = []
+    
+    for crop in crops:
+        crop_seasons = []
+        for season in seasons:
+            try:
+                features = pipeline.get_district_features(district, crop, season)
+                farm_data = {
+                    "district": district,
+                    "crop": crop,
+                    "season": season,
+                    "farm_size_ha": 2.5,
+                    "irrigation": "canal",
+                    "experience": "experienced",
+                    "loan_amount": 50000
+                }
+                result = model.predict_risk(farm_data, base_features=features)
+                
+                pd = result.get('pd', 0)
+                yield_potential = features.get('yieldavg', 0)
+                
+                crop_seasons.append({
+                    "season": season.capitalize(),
+                    "probability_of_default": round(pd * 100, 1),
+                    "yield_potential": round(yield_potential, 2),
+                    "rainfall_pct": round(features.get('rainfallpct', 100), 1)
+                })
+            except Exception:
+                continue
+        
+        if crop_seasons:
+            seasonal_data.append({
+                "crop": crop.capitalize(),
+                "seasons": crop_seasons
+            })
+    
+    return seasonal_data
+
+def generate_portfolio_risk_distribution(heatmap_data: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Generate portfolio risk distribution analysis"""
+    print("\n📊 Generating Portfolio Risk Distribution...")
+    
+    # Count risk tiers
+    low_count = sum(1 for item in heatmap_data if item['risk_level'] == 'LOW')
+    medium_count = sum(1 for item in heatmap_data if item['risk_level'] == 'MEDIUM')
+    high_count = sum(1 for item in heatmap_data if item['risk_level'] == 'HIGH')
+    
+    total = len(heatmap_data)
+    
+    portfolio_data = {
+        "summary": {
+            "total_assessments": total,
+            "low_risk_count": low_count,
+            "medium_risk_count": medium_count,
+            "high_risk_count": high_count,
+            "low_risk_pct": round((low_count / total * 100) if total > 0 else 0, 1),
+            "medium_risk_pct": round((medium_count / total * 100) if total > 0 else 0, 1),
+            "high_risk_pct": round((high_count / total * 100) if total > 0 else 0, 1),
+        },
+        "by_crop": {},
+        "by_season": {},
+        "distribution": [
+            {"name": "Low Risk", "value": low_count, "percentage": round((low_count / total * 100) if total > 0 else 0, 1)},
+            {"name": "Medium Risk", "value": medium_count, "percentage": round((medium_count / total * 100) if total > 0 else 0, 1)},
+            {"name": "High Risk", "value": high_count, "percentage": round((high_count / total * 100) if total > 0 else 0, 1)},
+        ]
+    }
+    
+    # Risk by crop
+    for crop in set(item['crop'] for item in heatmap_data):
+        crop_items = [item for item in heatmap_data if item['crop'] == crop]
+        crop_low = sum(1 for item in crop_items if item['risk_level'] == 'LOW')
+        crop_medium = sum(1 for item in crop_items if item['risk_level'] == 'MEDIUM')
+        crop_high = sum(1 for item in crop_items if item['risk_level'] == 'HIGH')
+        portfolio_data["by_crop"][crop] = {
+            "low": crop_low,
+            "medium": crop_medium,
+            "high": crop_high
+        }
+    
+    # Risk by season
+    for season in set(item['season'] for item in heatmap_data):
+        season_items = [item for item in heatmap_data if item['season'] == season]
+        season_low = sum(1 for item in season_items if item['risk_level'] == 'LOW')
+        season_medium = sum(1 for item in season_items if item['risk_level'] == 'MEDIUM')
+        season_high = sum(1 for item in season_items if item['risk_level'] == 'HIGH')
+        portfolio_data["by_season"][season] = {
+            "low": season_low,
+            "medium": season_medium,
+            "high": season_high
+        }
+    
+    return portfolio_data
+
+def save_graph_data(heatmap_data: List[Dict], seasonal_data: List[Dict], portfolio_data: Dict):
+    """Save all graph data to JSON files in frontend-accessible location"""
+    output_dir = os.path.join(backend_dir, '..', 'frontend', 'public', 'graphs')
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # Save heatmap data
+    with open(os.path.join(output_dir, 'heatmap.json'), 'w') as f:
+        json.dump({"data": heatmap_data}, f, indent=2)
+    print(f"✅ Saved heatmap data ({len(heatmap_data)} items)")
+    
+    # Save seasonal data
+    with open(os.path.join(output_dir, 'seasonal.json'), 'w') as f:
+        json.dump({"data": seasonal_data}, f, indent=2)
+    print(f"✅ Saved seasonal trend data ({len(seasonal_data)} crops)")
+    
+    # Save portfolio data
+    with open(os.path.join(output_dir, 'portfolio.json'), 'w') as f:
+        json.dump(portfolio_data, f, indent=2)
+    print(f"✅ Saved portfolio risk distribution")
+    
+    print(f"\n📁 All graph data saved to: {output_dir}")
+
+
 def main():
     print("Initializing Data Pipeline & Loading Models...")
     # Because this is run from backend/app/ we need to ensure the pipeline path is correct
@@ -49,9 +238,38 @@ def main():
     pipeline = RealDataPipeline(data_dir=data_dir)
     model = AgricreditModel()
     
-    # We also need to hack model to use the pipeline instance if we want,
-    # but AgricreditModel initializes its own DataLoader which initializes RealDataPipeline
-    # Model's DataLoader doesn't take args, so we might need to rely on the model.predict_risk base_features injection
+    print("✅ Pipeline and Model loaded successfully\n")
+    
+    # ═══════════════════════════════════════════════════════════
+    # GENERATE GRAPH DATA FOR LANDING PAGE
+    # ═══════════════════════════════════════════════════════════
+    
+    heatmap_data = generate_heatmap_data(pipeline, model)
+    seasonal_data = generate_seasonal_trend_data(pipeline, model)
+    portfolio_data = generate_portfolio_risk_distribution(heatmap_data)
+    
+    # Save all data as JSON files for frontend
+    save_graph_data(heatmap_data, seasonal_data, portfolio_data)
+    
+    print("\n" + "="*70)
+    print("📊 GRAPH DATA SUMMARY")
+    print("="*70)
+    print(f"Heatmap Districts:     {len(set(item['district'] for item in heatmap_data))} districts")
+    print(f"Heatmap Total Entries: {len(heatmap_data)}")
+    print(f"Seasonal Trends:       {len(seasonal_data)} crops")
+    print(f"Portfolio Distribution: {portfolio_data['summary']['total_assessments']} assessments")
+    print(f"  - Low Risk:    {portfolio_data['summary']['low_risk_count']} ({portfolio_data['summary']['low_risk_pct']}%)")
+    print(f"  - Medium Risk: {portfolio_data['summary']['medium_risk_count']} ({portfolio_data['summary']['medium_risk_pct']}%)")
+    print(f"  - High Risk:   {portfolio_data['summary']['high_risk_count']} ({portfolio_data['summary']['high_risk_pct']}%)")
+    print("="*70)
+    
+    # ═══════════════════════════════════════════════════════════
+    # OPTIONAL: Run scenario tests for detailed diagnosis
+    # ═══════════════════════════════════════════════════════════
+    
+    print("\n" + "="*70)
+    print("🔍 SCENARIO-BASED PREDICTIONS (Optional)")
+    print("="*70)
     
     # Define scenarios
     scenarios = [
@@ -110,6 +328,7 @@ def main():
         
         # 4. Print
         print_scenario_result(s["id"], result, base_features)
+
 
 if __name__ == "__main__":
     main()

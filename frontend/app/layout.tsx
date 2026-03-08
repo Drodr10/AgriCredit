@@ -36,7 +36,7 @@ export default function RootLayout({
                 <path d="M12 20V10" />
                 <path d="M12 10c-2-3-6-4-6-8 4 0 6 3 6 3s2-3 6-3c0 4-4 5-6 8z" fill="currentColor" stroke="none" />
               </svg>
-              <span className="text-lg font-bold text-gray-900 tracking-tight">AgriCredit</span>
+              <span className="text-lg font-bold text-gray-900 tracking-tight">Agricredit</span>
             </a>
 
             <nav className="hidden sm:flex items-center gap-6">

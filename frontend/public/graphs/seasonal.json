@@ -1,0 +1,38 @@
+{
+  "data": [
+    {
+      "crop": "Rice",
+      "seasons": [
+        {
+          "season": "Kharif",
+          "probability_of_default": 59.6,
+          "yield_potential": 1.66,
+          "rainfall_pct": 149.9
+        },
+        {
+          "season": "Rabi",
+          "probability_of_default": 59.6,
+          "yield_potential": 1.66,
+          "rainfall_pct": 149.9
+        }
+      ]
+    },
+    {
+      "crop": "Wheat",
+      "seasons": [
+        {
+          "season": "Kharif",
+          "probability_of_default": 58.0,
+          "yield_potential": 1.79,
+          "rainfall_pct": 149.9
+        },
+        {
+          "season": "Rabi",
+          "probability_of_default": 58.0,
+          "yield_potential": 1.79,
+          "rainfall_pct": 149.9
+        }
+      ]
+    }
+  ]
+}
