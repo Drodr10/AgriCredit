@@ -143,6 +143,15 @@ class CreditApplicationInDB(MongoBaseModel, CreditApplicationBase):
     suggested_interest_rate: float | None = None
     expected_loss: float | None = None
     scenario_id: str | None = None
+    baseline_pd: float | None = None
+    
+    # Financial Metrics (5 C's)
+    dsc_ratio: float | None = None
+    ltv: float | None = None
+    equity_ratio: float | None = None
+    collateral_value: float | None = None
+    llm_capacity: str | None = None
+    llm_collateral: str | None = None
     
     # AI Reasoning
     rainfall_forecast: str | None = None
@@ -154,6 +163,10 @@ class CreditApplicationInDB(MongoBaseModel, CreditApplicationBase):
     rainfall_anomaly_weight: float | None = None
     price_volatility_weight: float | None = None
     extreme_events_weight: float | None = None
+    
+    # Raw ML outputs
+    feature_importance: list[dict[str, Any]] | None = None
+    model_comparison: dict[str, Any] | None = None
     
     # Application details
     loan_purpose: str | None = None
@@ -175,6 +188,14 @@ class CreditApplication(CreditApplicationBase):
     suggested_interest_rate: float | None
     expected_loss: float | None
     scenario_id: str | None
+    baseline_pd: float | None
+    
+    dsc_ratio: float | None
+    ltv: float | None
+    equity_ratio: float | None
+    collateral_value: float | None
+    llm_capacity: str | None
+    llm_collateral: str | None
     
     rainfall_forecast: str | None
     yield_stability: str | None
@@ -184,6 +205,9 @@ class CreditApplication(CreditApplicationBase):
     rainfall_anomaly_weight: float | None
     price_volatility_weight: float | None
     extreme_events_weight: float | None
+    
+    feature_importance: list[dict[str, Any]] | None
+    model_comparison: dict[str, Any] | None
     
     loan_purpose: str | None
     has_insurance: bool | None

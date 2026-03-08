@@ -38,6 +38,10 @@ def _run_ai_analysis(payload: CreditApplicationCreate, farm: dict, user_doc: dic
     else:
         experience = "beginner"
 
+    # Map machinery type to estimated value
+    machinery_values = {"manual": 2000, "tractor": 25000, "large": 80000}
+    machinery_value = machinery_values.get(farm.get("machinery_type", "manual"), 5000)
+
     farm_data = {
         "district": "Ludhiana",  # Demo: hardcoded to Ludhiana
         "crop": payload.crop_type.lower(),
@@ -46,37 +50,54 @@ def _run_ai_analysis(payload: CreditApplicationCreate, farm: dict, user_doc: dic
         "irrigation": (farm.get("irrigation_type") or "mixed").lower(),
         "experience": experience,
         "loan_amount": payload.amount_requested,
+        "soil_type": (farm.get("soil_category") or "loamy").lower(),
+        "machinery_value": machinery_value,
     }
 
-    result = _model.predict_risk(farm_data)
+    result = _model.predict_risk(farm_data, include_comparison=True)
 
     # Extract feature importance weights for the top risk drivers
-    importance = result.get("feature_importance", [])
-    rainfall_w = next((f["weight"] for f in importance if "Rainfall" in f["name"] or "SPEI" in f["name"]), 0.25)
+    importance = result.get("featureimportance", [])
+    rainfall_w = next((f["weight"] for f in importance if "Rainfall" in f["name"] or "SPEI" in f["name"] or "Drought" in f["name"]), 0.25)
     price_w = next((f["weight"] for f in importance if "Price" in f["name"]), 0.15)
     extreme_w = next((f["weight"] for f in importance if "Yield" in f["name"]), 0.10)
 
     # Extract farmer_summary list
-    summary = result.get("farmer_summary", [])
-    model_comp = result.get("model_comparison", {})
+    summary = result.get("farmersummary", [])
+    model_comp = result.get("modelcomparison", {})
 
     scenario_id_str = str(uuid.uuid4().hex)[:4].upper()
 
     return {
-        "risk_tier": result["risk_tier"],
+        "risk_tier": result["risktier"],
         "bad_season_probability": round(result["pd"] * 100, 1),
         "suggested_interest_rate": round(result["suggested_rate"] * 100, 1),
-        "expected_loss": round(result["expected_loss"], 2),
+        "expected_loss": round(result["expectedloss"], 2),
         "scenario_id": f"SC-{datetime.now().year}-{scenario_id_str}",
+        "baseline_pd": round(result.get("baselinepd", 0) * 100, 1),
 
+        # Financial metrics (5 C's)
+        "dsc_ratio": result.get("dsc_ratio"),
+        "ltv": result.get("ltv"),
+        "equity_ratio": result.get("equity_ratio"),
+        "collateral_value": result.get("collateral_value"),
+        "llm_capacity": result.get("llm_capacity"),
+        "llm_collateral": result.get("llm_collateral"),
+
+        # Reasoning summaries
         "rainfall_forecast": summary[0] if len(summary) > 0 else "Rainfall data unavailable.",
         "yield_stability": summary[1] if len(summary) > 1 else "Yield data unavailable.",
         "price_volatility": summary[2] if len(summary) > 2 else "Price data unavailable.",
         "model_confidence": model_comp.get("model", "unknown"),
 
+        # Risk driver weights
         "rainfall_anomaly_weight": round(rainfall_w * 100, 1),
         "price_volatility_weight": round(price_w * 100, 1),
         "extreme_events_weight": round(extreme_w * 100, 1),
+
+        # Raw ML outputs
+        "feature_importance": importance,
+        "model_comparison": model_comp,
     }
 
 
