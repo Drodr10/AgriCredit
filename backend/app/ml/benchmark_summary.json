@@ -1,0 +1,27 @@
+{
+  "winner": "XGBoost (Ours)",
+  "winner_auc": 0.9667,
+  "improvement_pct": 20.6,
+  "full_results": {
+    "Logistic (Banks)": {
+      "auc": 0.8013,
+      "cv_avg": 0.8163
+    },
+    "Random Forest": {
+      "auc": 0.9599,
+      "cv_avg": 0.957
+    },
+    "XGBoost (Ours)": {
+      "auc": 0.9667,
+      "cv_avg": 0.9604
+    },
+    "LightGBM": {
+      "auc": 0.9663,
+      "cv_avg": 0.9614
+    },
+    "CatBoost": {
+      "auc": 0.9656,
+      "cv_avg": 0.9623
+    }
+  }
+}
