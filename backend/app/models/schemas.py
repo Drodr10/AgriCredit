@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Annotated, Any
 
 from bson import ObjectId
@@ -79,10 +79,19 @@ class UserBase(BaseModel):
     clerk_id: str = Field(..., max_length=100)
     phone: str | None = Field(default=None, max_length=20)
     role: str | None = Field(default=None, max_length=50)
+    birthday: date | None = Field(default=None)
+    national_id: str | None = Field(default=None, max_length=50)
+    experience_years: int | None = Field(default=None, ge=0)
 
 class UserRoleUpdate(BaseModel):
     role: str = Field(..., max_length=50)
     email: str | None = Field(default=None, max_length=255)
+
+class UserProfileUpdate(BaseModel):
+    experience_years: int | None = Field(default=None, ge=0)
+    birthday: date | None = Field(default=None)
+    phone: str | None = Field(default=None, max_length=20)
+    national_id: str | None = Field(default=None, max_length=50)
 
 class UserCreate(UserBase):
     pass
@@ -102,11 +111,15 @@ class User(UserBase):
 
 
 class CreditApplicationBase(BaseModel):
-    farmer_id: str = Field(...)
+    clerk_id: str = Field(..., max_length=100)
+    farmer_id: str = Field(...)  # This is the farm UUID
     crop_type: str = Field(..., max_length=100)
     region: str = Field(..., max_length=200)
     season: str = Field(..., max_length=100)
     amount_requested: float = Field(..., gt=0)
+    loan_purpose: str | None = Field(default=None, max_length=100)
+    has_insurance: bool | None = Field(default=False)
+    insurance_type: str | None = Field(default=None, max_length=100)
 
 
 class CreditApplicationCreate(CreditApplicationBase):
@@ -141,6 +154,11 @@ class CreditApplicationInDB(MongoBaseModel, CreditApplicationBase):
     rainfall_anomaly_weight: float | None = None
     price_volatility_weight: float | None = None
     extreme_events_weight: float | None = None
+    
+    # Application details
+    loan_purpose: str | None = None
+    has_insurance: bool | None = None
+    insurance_type: str | None = None
 
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
@@ -166,6 +184,10 @@ class CreditApplication(CreditApplicationBase):
     rainfall_anomaly_weight: float | None
     price_volatility_weight: float | None
     extreme_events_weight: float | None
+    
+    loan_purpose: str | None
+    has_insurance: bool | None
+    insurance_type: str | None
 
     created_at: datetime
     updated_at: datetime

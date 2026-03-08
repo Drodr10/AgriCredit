@@ -25,27 +25,27 @@ export function getDroughtCategory(spei: number): string {
 // SPEI value → RGBA color [R, G, B, A]
 // Red = severe drought, Yellow = moderate, Green = normal, Blue = wet
 export function getSpeiColor(spei: number): [number, number, number, number] {
-  if (spei <= -2.0) return [115, 0, 0, 200];       // Dark red
-  if (spei <= -1.5) return [180, 0, 0, 200];       // Red
-  if (spei <= -1.0) return [230, 60, 20, 200];     // Orange-red
-  if (spei <= -0.5) return [245, 150, 40, 200];    // Orange
-  if (spei <= 0.5) return [120, 190, 80, 200];     // Green (normal)
-  if (spei <= 1.0) return [50, 160, 130, 200];     // Teal
-  if (spei <= 1.5) return [30, 120, 180, 200];     // Blue
-  if (spei <= 2.0) return [20, 70, 160, 200];      // Dark blue
-  return [10, 30, 120, 200];                        // Very dark blue
+  if (spei <= -2.0) return [146, 64, 14, 255];     // Amber 900
+  if (spei <= -1.5) return [180, 83, 9, 255];      // Amber 700 / Brand Gold
+  if (spei <= -1.0) return [217, 119, 6, 255];     // Amber 600
+  if (spei <= -0.5) return [245, 158, 11, 255];    // Amber 500
+  if (spei <= 0.5) return [214, 211, 209, 255];    // Stone 300 (Neutral)
+  if (spei <= 1.0) return [134, 239, 172, 255];    // Green 300
+  if (spei <= 1.5) return [34, 197, 94, 255];      // Green 500
+  if (spei <= 2.0) return [22, 101, 52, 255];      // Green 800 / Brand Green
+  return [20, 83, 45, 255];                        // Green 900
 }
 
 // Legend items for the color scale
 export const LEGEND_ITEMS = [
-  { label: 'Exceptional Drought', color: 'rgb(115, 0, 0)', range: '≤ -2.0' },
-  { label: 'Extreme Drought', color: 'rgb(180, 0, 0)', range: '-2.0 to -1.5' },
-  { label: 'Severe Drought', color: 'rgb(230, 60, 20)', range: '-1.5 to -1.0' },
-  { label: 'Moderate Drought', color: 'rgb(245, 150, 40)', range: '-1.0 to -0.5' },
-  { label: 'Near Normal', color: 'rgb(120, 190, 80)', range: '-0.5 to 0.5' },
-  { label: 'Moderately Wet', color: 'rgb(50, 160, 130)', range: '0.5 to 1.0' },
-  { label: 'Severely Wet', color: 'rgb(30, 120, 180)', range: '1.0 to 1.5' },
-  { label: 'Extremely Wet', color: 'rgb(20, 70, 160)', range: '1.5 to 2.0' },
+  { label: 'Exceptional Drought', color: 'rgb(146, 64, 14)', range: '≤ -2.0' },
+  { label: 'Extreme Drought', color: 'rgb(180, 83, 9)', range: '-2.0 to -1.5' },
+  { label: 'Severe Drought', color: 'rgb(217, 119, 6)', range: '-1.5 to -1.0' },
+  { label: 'Moderate Drought', color: 'rgb(245, 158, 11)', range: '-1.0 to -0.5' },
+  { label: 'Near Normal', color: 'rgb(214, 211, 209)', range: '-0.5 to 0.5' },
+  { label: 'Moderately Wet', color: 'rgb(134, 239, 172)', range: '0.5 to 1.0' },
+  { label: 'Severely Wet', color: 'rgb(34, 197, 94)', range: '1.0 to 1.5' },
+  { label: 'Extremely Wet', color: 'rgb(22, 101, 52)', range: '1.5 to 2.0' },
 ];
 
 // Sample SPEI data per state (simulating a recent monsoon year snapshot)
