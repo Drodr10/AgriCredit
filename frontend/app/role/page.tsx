@@ -28,11 +28,7 @@ export default function RoleSelection() {
       ]);
       console.log("Token check finished.");
 
-      if (selected === "farmer") {
-        window.location.href = "/farmerplaceholder";
-      } else if (selected === "lender") {
-        window.location.href = "/lenderplaceholder";
-      }
+      window.location.href = "/dashboard";
     } catch (error) {
       console.error("Failed to update role:", error);
       setIsLoading(false);
