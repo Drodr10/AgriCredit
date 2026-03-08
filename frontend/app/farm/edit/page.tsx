@@ -1,9 +1,8 @@
 "use client";
 
 import { useUser } from "@clerk/nextjs";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useCallback, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
 
@@ -18,23 +17,30 @@ const LocationMap = dynamic(() => import("@/app/components/LocationMap"), {
 });
 
 const SOIL_TYPES = [
-  { id: "brown", name: "Normal Brown" },
-  { id: "black", name: "Black Cotton" },
-  { id: "alluvial", name: "Alluvial" },
-  { id: "red", name: "Red" },
+  { id: "brown", name: "Normal Brown", desc: "Fertile, loam soil", image: "/onboarding/soil_brown.png" },
+  { id: "black", name: "Black Cotton", desc: "Cracked, clay-rich", image: "/onboarding/soil_black.png" },
+  { id: "alluvial", name: "Alluvial", desc: "Smooth, silt-rich", image: "/onboarding/soil_alluvial.png" },
+  { id: "red", name: "Red", desc: "Iron-rich, porous", image: "/onboarding/soil_red.png" },
 ];
 
 const IRRIGATION_TYPES = [
-  { id: "canal", name: "Canal" },
-  { id: "tubewell", name: "Tube-Well" },
-  { id: "rainfed", name: "Rain-fed" },
+  { id: "canal", name: "Canal", desc: "Shared water flow", image: "/onboarding/irr_canal.png" },
+  { id: "tubewell", name: "Tube-Well", desc: "Groundwater pump", image: "/onboarding/irr_well.png" },
+  { id: "rainfed", name: "Rain-fed", desc: "Monsoon dependent", image: "/onboarding/irr_rain.png" },
 ];
 
 const MACHINERY_TYPES = [
-  { id: "manual", name: "Manual" },
-  { id: "tractor", name: "Tractor" },
-  { id: "large", name: "Heavy Duty" },
+  { id: "manual", name: "Manual", desc: "Traditional tools", image: "/onboarding/mach_manual.png" },
+  { id: "tractor", name: "Tractor", desc: "Utility machinery", image: "/onboarding/mach_tractor.png" },
+  { id: "large", name: "Heavy Duty", desc: "Large harvesters", image: "/onboarding/mach_large.png" },
 ];
+
+const SOIL_COLORS: Record<string, string> = {
+  brown: "#8B6914",
+  black: "#3B3B3B",
+  alluvial: "#C2A868",
+  red: "#A0522D",
+};
 
 export default function EditFarmPage() {
   return (
@@ -53,15 +59,17 @@ function EditFarmContent() {
   const searchParams = useSearchParams();
   const farmId = searchParams.get("id");
   const { isLoaded, isSignedIn, user } = useUser();
+  const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  
   const [formData, setFormData] = useState({
     name: "",
     location: "",
     soil_category: "",
     irrigation_type: "",
     machinery_type: "",
-    farm_size_hectares: 1,
+    farm_size_hectares: 5,
     gps_coordinates: "",
   });
 
@@ -86,7 +94,7 @@ function EditFarmContent() {
             soil_category: farm.soil_category || "",
             irrigation_type: farm.irrigation_type || "",
             machinery_type: farm.machinery_type || "",
-            farm_size_hectares: farm.farm_size_hectares || 1,
+            farm_size_hectares: farm.farm_size_hectares || 5,
             gps_coordinates: farm.gps_coordinates || "",
           });
         }
@@ -98,7 +106,10 @@ function EditFarmContent() {
     }
   };
 
-  const handleSave = async () => {
+  const nextStep = () => setStep((s) => s + 1);
+  const prevStep = () => setStep((s) => s - 1);
+
+  const handleSubmit = async () => {
     setSaving(true);
     try {
       const response = await fetch(`http://localhost:8000/users/me/farms/${farmId}?clerk_id=${user?.id}`, {
@@ -109,156 +120,325 @@ function EditFarmContent() {
       if (response.ok) {
         router.push("/dashboard");
       } else {
-        const err = await response.json();
-        console.error("Update failed:", err);
+        const errData = await response.json();
+        console.error("Server error:", errData);
       }
     } catch (error) {
-      console.error("Failed to update farm:", error);
+      console.error("Failed to update farm. CORS or Server Down?", error);
     } finally {
       setSaving(false);
     }
   };
 
+  const canContinue = () => {
+    if (step === 1 && !formData.name) return false;
+    if (step === 4 && formData.farm_size_hectares < 1) return false;
+    return true;
+  };
+
   if (!isLoaded || loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-green-50/60 to-white flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-green-800 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-green-50/60 to-white text-slate-900 font-sans">
-      <div className="max-w-3xl mx-auto px-6 py-12">
-        <div className="mb-12">
-          <Link href="/dashboard" className="text-xs font-black text-slate-400 uppercase tracking-widest hover:text-green-800 transition-colors flex items-center gap-2 mb-6">
-            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M15 19l-7-7 7-7" />
-            </svg>
-            Back to Dashboard
-          </Link>
-          <h1 className="text-4xl font-black tracking-tight uppercase italic text-slate-900">
-            Edit <span className="text-green-800">{formData.name || "Farm"}</span>
-          </h1>
-          <p className="text-slate-400 mt-2 font-medium">Update your farm profile details below.</p>
-        </div>
+    <LocationMap
+      coordinates={formData.gps_coordinates}
+      location={formData.location}
+      farmSizeHectares={formData.farm_size_hectares}
+      farmCircleColor={SOIL_COLORS[formData.soil_category] || undefined}
+      farmName={formData.name || undefined}
+      onCoordinatesChange={(coords: string) => setFormData({ ...formData, gps_coordinates: coords })}
+      onLocationChange={(location: string) => setFormData((prev) => ({ ...prev, location }))}
+    >
+      {/* ─── Left-side overlay panel ─── */}
+      <div style={{
+        position: "absolute",
+        top: 24,
+        left: 24,
+        zIndex: 50,
+        width: 380,
+        maxWidth: "calc(100vw - 48px)",
+        maxHeight: "calc(100vh - 140px)",
+        overflowY: "auto",
+        pointerEvents: "auto",
+      }}>
+        <div style={{
+          background: "rgba(255,255,255,0.88)",
+          backdropFilter: "blur(16px)",
+          WebkitBackdropFilter: "blur(16px)",
+          borderRadius: 20,
+          padding: "24px 28px",
+          boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
+        }}>
+          {/* Progress bar */}
+          <div style={{ marginBottom: 20 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <span className="text-[10px] font-black text-green-800 uppercase tracking-[0.2em]">
+                Step {step} of 4
+              </span>
+              <span className="text-[10px] font-bold text-slate-400">
+                {Math.round((step / 4) * 100)}%
+              </span>
+            </div>
+            <div className="w-full bg-slate-200 h-1 rounded-full overflow-hidden">
+              <div
+                className="bg-green-800 h-full transition-all duration-700 ease-in-out shadow-[0_0_15px_rgba(26,74,46,0.2)]"
+                style={{ width: `${(step / 4) * 100}%` }}
+              ></div>
+            </div>
+          </div>
 
-        <div className="space-y-8 bg-white p-8 sm:p-10 rounded-[2.5rem] border border-gray-200 shadow-xl shadow-slate-200/50">
-          
-          {/* Name */}
-          <div className="group">
-              <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-800 transition-colors">Farm Name</label>
+          {/* ──── Step 1: Farm Identity ──── */}
+          {step === 1 && (
+            <div>
+              <h1 className="text-2xl font-black tracking-tighter text-slate-900 mb-1">Edit Farm Identity</h1>
+              <p className="text-slate-400 text-sm font-medium mb-6">
+                Update the nickname of your farm. This is how it will appear across your dashboard and reports.
+              </p>
+              <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">
+                Farm Nickname
+              </label>
               <input
                 type="text"
-                className="w-full bg-slate-50 border border-gray-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-800 focus:bg-white outline-none transition-all text-slate-900"
+                placeholder="e.g. Ludhiana Plot A"
+                className="w-full bg-white/80 border border-gray-200 rounded-xl px-5 py-3 text-lg font-bold focus:border-green-800 focus:ring-4 focus:ring-green-50 outline-none transition-all placeholder:text-slate-200 text-slate-900 shadow-sm"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
-          </div>
+            </div>
+          )}
 
-          {/* Location & Map */}
-          <div className="group">
-            <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-800 transition-colors">Location</label>
-            <input
-              type="text"
-              className="w-full bg-slate-50 border border-gray-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-800 focus:bg-white outline-none transition-all text-slate-900 mb-4"
-              value={formData.location}
-              onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-            />
-            <LocationMap
-              coordinates={formData.gps_coordinates}
-              onCoordinatesChange={(coords: string) => setFormData({ ...formData, gps_coordinates: coords })}
-            />
-          </div>
-
-          {/* Size */}
-          <div className="group">
-            <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest">Farm Size (Hectares)</label>
-            <div className="flex items-center gap-6">
+          {/* ──── Step 2: Regional Context ──── */}
+          {step === 2 && (
+            <div>
+              <h1 className="text-2xl font-black tracking-tighter text-slate-900 mb-1">Regional Context</h1>
+              <p className="text-slate-400 text-sm font-medium mb-6">
+                Pin your location on the map and set your farm scale.
+              </p>
+              <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">
+                State & District
+              </label>
               <input
-                type="number"
-                min="1"
-                max="500"
-                className="w-32 bg-slate-50 border border-gray-200 rounded-2xl px-6 py-4 text-2xl font-black focus:border-green-800 focus:bg-white outline-none transition-all text-slate-900 text-center"
-                value={formData.farm_size_hectares}
-                onChange={(e) => setFormData({ ...formData, farm_size_hectares: Math.max(1, parseFloat(e.target.value) || 1) })}
-              />
-              <input
-                type="range"
-                min="1"
-                max="500"
-                step="1"
-                className="flex-1 h-3 bg-slate-100 rounded-full appearance-none cursor-pointer accent-green-800"
-                value={formData.farm_size_hectares}
-                onChange={(e) => setFormData({ ...formData, farm_size_hectares: parseFloat(e.target.value) })}
+                type="text"
+                placeholder="e.g. Punjab, Bathinda"
+                className="w-full bg-white/80 border border-gray-200 rounded-xl px-5 py-3 text-lg font-bold focus:border-green-800 focus:ring-4 focus:ring-green-50 outline-none transition-all placeholder:text-slate-200 text-slate-900 shadow-sm"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
               />
             </div>
-          </div>
+          )}
 
-          {/* Dropdowns Row */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="group">
-              <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest">Soil Type</label>
-              <select
-                className="w-full bg-slate-50 border border-gray-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-800 focus:bg-white outline-none transition-all appearance-none cursor-pointer text-slate-900"
-                value={formData.soil_category}
-                onChange={(e) => setFormData({ ...formData, soil_category: e.target.value })}
-              >
-                <option value="">Select...</option>
-                {SOIL_TYPES.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-              </select>
+          {/* ──── Step 3: Soil Composition ──── */}
+          {step === 3 && (
+            <div>
+              <h1 className="text-2xl font-black tracking-tighter text-slate-900 mb-1">Soil Composition</h1>
+              <p className="text-slate-400 text-sm font-medium mb-6">
+                Healthy crops start from the ground up. Which best describes your land?
+              </p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {SOIL_TYPES.map((soil) => (
+                  <button
+                    key={soil.id}
+                    onClick={() => setFormData({ ...formData, soil_category: soil.id })}
+                    className={`relative rounded-2xl overflow-hidden border transition-all group shadow-sm text-left ${
+                      formData.soil_category === soil.id
+                        ? "border-green-800 ring-4 ring-green-50 shadow-lg"
+                        : "border-gray-200 hover:border-green-700/40"
+                    }`}
+                    style={{ height: 80 }}
+                  >
+                    <Image src={soil.image} alt={soil.name} fill className="object-cover object-left scale-125 transition-transform group-hover:scale-150 duration-700 opacity-70" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-white via-white/60 to-transparent"></div>
+                    <div className="absolute inset-0 flex items-center px-5">
+                      <div>
+                        <h3 className="text-base font-black tracking-tighter text-slate-900">{soil.name}</h3>
+                        <p className="text-slate-500 text-[11px] font-bold uppercase tracking-wider">{soil.desc}</p>
+                      </div>
+                      {formData.soil_category === soil.id && (
+                        <div className="ml-auto">
+                          <svg className="w-6 h-6 text-green-800" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
-            <div className="group">
-              <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest">Irrigation</label>
-              <select
-                className="w-full bg-slate-50 border border-gray-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-800 focus:bg-white outline-none transition-all appearance-none cursor-pointer text-slate-900"
-                value={formData.irrigation_type}
-                onChange={(e) => setFormData({ ...formData, irrigation_type: e.target.value })}
-              >
-                <option value="">Select...</option>
-                {IRRIGATION_TYPES.map(i => <option key={i.id} value={i.id}>{i.name}</option>)}
-              </select>
-            </div>
-            <div className="group">
-              <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest">Machinery</label>
-              <select
-                className="w-full bg-slate-50 border border-gray-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-800 focus:bg-white outline-none transition-all appearance-none cursor-pointer text-slate-900"
-                value={formData.machinery_type}
-                onChange={(e) => setFormData({ ...formData, machinery_type: e.target.value })}
-              >
-                <option value="">Select...</option>
-                {MACHINERY_TYPES.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-              </select>
-            </div>
-          </div>
+          )}
 
-          {/* Actions */}
-          <div className="flex gap-4 pt-4">
-            <Link
-              href="/dashboard"
-              className="px-8 py-4 rounded-2xl border border-gray-200 font-black uppercase text-xs tracking-widest hover:border-slate-900 transition-all text-slate-300 hover:text-slate-900 bg-white shadow-sm text-center"
-            >
-              Cancel
-            </Link>
+          {/* ──── Step 4: Tools & Tactics ──── */}
+          {step === 4 && (
+            <div>
+              <h1 className="text-2xl font-black tracking-tighter text-slate-900 mb-1">Tools & Tactics</h1>
+              <p className="text-slate-400 text-sm font-medium mb-5">
+                Lenders require infrastructure data to assess operational efficiency.
+              </p>
+
+              {/* Irrigation */}
+              <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-3 border-b border-gray-200/60 pb-1">
+                Irrigation Strategy
+              </h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+                {IRRIGATION_TYPES.map((type) => (
+                  <button
+                    key={type.id}
+                    onClick={() => setFormData({ ...formData, irrigation_type: type.id })}
+                    className={`relative rounded-2xl overflow-hidden border transition-all group shadow-sm text-left ${
+                      formData.irrigation_type === type.id
+                        ? "border-green-800 ring-4 ring-green-50 shadow-lg"
+                        : "border-gray-200 hover:border-green-700/40"
+                    }`}
+                    style={{ height: 64 }}
+                  >
+                    <Image src={type.image} alt={type.name} fill className="object-cover object-left scale-125 transition-transform group-hover:scale-150 duration-700 opacity-60" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-white via-white/60 to-transparent"></div>
+                    <div className="absolute inset-0 flex items-center px-5">
+                      <div>
+                        <span className="text-base font-black tracking-tighter text-slate-900">{type.name}</span>
+                        <span className="text-slate-400 text-[10px] font-bold ml-2">{type.desc}</span>
+                      </div>
+                      {formData.irrigation_type === type.id && (
+                        <div className="ml-auto">
+                          <svg className="w-5 h-5 text-green-800" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Machinery */}
+              <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-3 border-b border-gray-200/60 pb-1">
+                Machinery & Labor
+              </h3>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {MACHINERY_TYPES.map((type) => (
+                  <button
+                    key={type.id}
+                    onClick={() => setFormData({ ...formData, machinery_type: type.id })}
+                    className={`relative rounded-2xl overflow-hidden border transition-all group shadow-sm text-left ${
+                      formData.machinery_type === type.id
+                        ? "border-green-800 ring-4 ring-green-50 shadow-lg"
+                        : "border-gray-200 hover:border-green-700/40"
+                    }`}
+                    style={{ height: 64 }}
+                  >
+                    <Image src={type.image} alt={type.name} fill className="object-cover object-left scale-125 transition-transform group-hover:scale-150 duration-700 opacity-60" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-white via-white/60 to-transparent"></div>
+                    <div className="absolute inset-0 flex items-center px-5">
+                      <div>
+                        <span className="text-base font-black tracking-tighter text-slate-900">{type.name}</span>
+                        <span className="text-slate-400 text-[10px] font-bold ml-2">{type.desc}</span>
+                      </div>
+                      {formData.machinery_type === type.id && (
+                        <div className="ml-auto">
+                          <svg className="w-5 h-5 text-green-800" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ──── Navigation Buttons ──── */}
+          <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
             <button
-              onClick={handleSave}
-              disabled={saving || !formData.name || formData.farm_size_hectares < 1}
-              className={`flex-1 py-4 rounded-2xl font-black uppercase text-sm tracking-[0.2em] transition-all shadow-xl ${
-                saving || !formData.name || formData.farm_size_hectares < 1
+               onClick={() => router.push("/dashboard")}
+               className="px-4 py-2.5 rounded-lg border border-gray-200 font-black uppercase text-[9px] tracking-widest hover:border-slate-900 transition-all text-slate-300 hover:text-slate-900 bg-white/80 shadow-sm"
+             >
+               Cancel
+            </button>
+            {step > 1 && (
+              <button
+                onClick={prevStep}
+                className="px-4 py-2.5 rounded-lg border border-gray-200 font-black uppercase text-[9px] tracking-widest hover:border-slate-900 transition-all text-slate-300 hover:text-slate-900 bg-white/80 shadow-sm"
+              >
+                Back
+              </button>
+            )}
+            <button
+              onClick={step === 4 ? handleSubmit : nextStep}
+              disabled={!canContinue() || saving}
+              className={`flex-1 flex justify-center items-center py-2.5 rounded-lg font-black uppercase text-[10px] tracking-[0.15em] transition-all shadow-lg ${
+                !canContinue() || saving
                   ? "bg-slate-100 text-slate-300 cursor-not-allowed"
-                  : "bg-green-800 hover:bg-green-700 text-white hover:shadow-green-800/40 hover:-translate-y-1"
+                  : "bg-green-800 hover:bg-green-700 text-white hover:shadow-green-800/40"
               }`}
             >
               {saving ? (
-                <span className="flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  Saving...
-                </span>
-              ) : "Save Changes"}
+                <div className="w-3 h-3 border-2 border-slate-300 border-t-transparent rounded-full animate-spin"></div>
+              ) : (
+                step === 4 ? "Save Changes" : "Continue"
+              )}
             </button>
+          </div>
+
+          {/* Encryption badge */}
+          <div style={{ marginTop: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+            <svg className="w-3 h-3 text-slate-300" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+            </svg>
+            <span className="text-[8px] font-bold text-slate-300 uppercase tracking-widest">
+              Bank-Grade Encryption • GDPR
+            </span>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* ─── Bottom-center panel: Farm Scale (step 2 only) ─── */}
+      {step === 2 && (
+        <div style={{
+          position: "absolute",
+          bottom: 24,
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 50,
+          width: 340,
+          maxWidth: "calc(100vw - 48px)",
+          pointerEvents: "auto",
+        }}>
+          <div style={{
+            background: "rgba(255,255,255,0.88)",
+            backdropFilter: "blur(16px)",
+            WebkitBackdropFilter: "blur(16px)",
+            borderRadius: 16,
+            padding: "14px 20px",
+            boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
+          }}>
+            <label className="block text-[9px] font-bold text-slate-400 mb-1 uppercase tracking-widest text-center">
+              Farm Scale (Hectares)
+            </label>
+            <div className="text-3xl font-black text-green-800 text-center mb-2 tabular-nums tracking-tighter">
+              {formData.farm_size_hectares}
+            </div>
+            <input
+              type="range"
+              min="1"
+              max="500"
+              step="1"
+              className="w-full h-2 bg-slate-100 rounded-full appearance-none cursor-pointer accent-green-800 ring-1 ring-gray-200"
+              value={formData.farm_size_hectares}
+              onChange={(e) => setFormData({ ...formData, farm_size_hectares: parseFloat(e.target.value) })}
+            />
+            <div className="flex justify-between text-[8px] font-bold text-slate-300 mt-1 uppercase tracking-tighter">
+              <span>Small (1)</span>
+              <span>Industrial (500)</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </LocationMap>
   );
 }

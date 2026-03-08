@@ -23,6 +23,7 @@ interface LocationMapProps {
   onCoordinatesChange: (coords: string) => void;
   onLocationChange?: (location: string) => void;
   children?: React.ReactNode;
+  inline?: boolean;
 }
 
 const CROP_OPTIONS = [

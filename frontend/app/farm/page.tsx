@@ -52,7 +52,7 @@ export default function OnboardingFlow() {
     soil_category: "",
     irrigation_type: "",
     machinery_type: "",
-    farm_size_hectares: 1,
+    farm_size_hectares: 5,
     gps_coordinates: "",
   });
 
