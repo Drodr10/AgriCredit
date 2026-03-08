@@ -10,10 +10,12 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^7.0.1",
+    "@deck.gl/core": "^9.2.11",
     "@deck.gl/layers": "^9.2.11",
     "@deck.gl/mapbox": "^9.2.11",
     "@deck.gl/react": "^9.2.11",
     "@types/leaflet": "^1.9.21",
+    "@types/react-map-gl": "^6.1.8",
     "deck.gl": "^9.2.11",
     "leaflet": "^1.9.4",
     "maplibre-gl": "^5.19.0",
