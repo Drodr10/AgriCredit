@@ -19,8 +19,6 @@ export default function Dashboard() {
   const { isLoaded, isSignedIn, user } = useUser();
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const { lang } = useVoiceContext();
-  const { speak } = useVoiceAssistant(lang);
 
   useEffect(() => {
     async function fetchUserData() {
@@ -54,6 +52,8 @@ export default function Dashboard() {
 
 function FarmerView({ farms, setUserData, clerkId }: { farms: Farm[], setUserData: any, clerkId: string }) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { lang } = useVoiceContext();
+  const { speak } = useVoiceAssistant(lang);
 
   const handleDeleteFarm = async (farmId: string, farmName: string) => {
     if (!window.confirm(`Are you sure you want to delete ${farmName}? This will also delete ALL credit reports permanently.`)) {
