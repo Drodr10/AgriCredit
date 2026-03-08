@@ -194,3 +194,29 @@ def update_farm(clerk_id: str, farm_id: str, payload: dict = Body(...)):
     updated_farm = next(f for f in updated_user["farms"] if f.get("id") == farm_id)
     return updated_farm
 
+
+@router.delete("/me/farms/{farm_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_farm(clerk_id: str, farm_id: str):
+    db = _get_db()
+    user_doc = db.users.find_one({"clerk_id": clerk_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    # Check if farm exists for this user
+    farms = user_doc.get("farms", [])
+    if not any(f.get("id") == farm_id for f in farms):
+        raise HTTPException(status_code=404, detail="Farm not found")
+
+    # Remove the farm from the user's array
+    result = db.users.update_one(
+        {"clerk_id": clerk_id},
+        {"$pull": {"farms": {"id": farm_id}}, "$set": {"updated_at": datetime.now(timezone.utc)}}
+    )
+
+    if result.modified_count == 0:
+        raise HTTPException(status_code=500, detail="Failed to delete farm from user profile")
+
+    # Cascade delete all credit applications associated with this farm
+    db.credit_applications.delete_many({"farmer_id": farm_id, "clerk_id": clerk_id})
+
+    return None

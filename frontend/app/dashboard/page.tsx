@@ -46,10 +46,35 @@ export default function Dashboard() {
 
   if (role === "admin") return <AdminView userData={userData} />;
   if (role === "lender") return <LenderView userData={userData} />;
-  return <FarmerView farms={userData?.farms || []} />;
+  return <FarmerView farms={userData?.farms || []} setUserData={setUserData} clerkId={user.id} />;
 }
 
-function FarmerView({ farms }: { farms: Farm[] }) {
+function FarmerView({ farms, setUserData, clerkId }: { farms: Farm[], setUserData: any, clerkId: string }) {
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  const handleDeleteFarm = async (farmId: string, farmName: string) => {
+    if (!window.confirm(`Are you sure you want to delete ${farmName}? This will also delete ALL credit reports permanently.`)) {
+      return;
+    }
+
+    setDeletingId(farmId);
+    try {
+      const res = await fetch(`http://localhost:8000/users/me/farms/${farmId}?clerk_id=${clerkId}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) throw new Error("Failed to delete farm");
+
+      setUserData((prev: any) => ({
+        ...prev,
+        farms: prev.farms.filter((f: Farm) => f.id !== farmId),
+      }));
+    } catch (err) {
+      console.error(err);
+      alert("Failed to delete the farm. Please try again.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
   return (
     <div className="min-h-screen bg-gradient-to-b from-green-50/60 to-white text-slate-900 p-8 sm:p-12 font-sans">
       <div className="max-w-7xl mx-auto">
@@ -165,12 +190,28 @@ function FarmerView({ farms }: { farms: Farm[] }) {
                        VIEW REPORTS
                      </Link>
                    </div>
-                   <Link href={`/farm/edit?id=${farm.id}`} className="text-slate-300 group-hover:text-green-800 transition-all group-hover:translate-x-1">
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                      </svg>
-                   </Link>
-                </div>
+                   <div className="flex items-center gap-2">
+                     <button
+                       onClick={() => handleDeleteFarm(farm.id, farm.name)}
+                       disabled={deletingId === farm.id}
+                       className="text-slate-300 hover:text-red-600 transition-all p-2 hover:bg-red-50 rounded-full cursor-pointer disabled:opacity-50"
+                       title="Delete Farm"
+                     >
+                       {deletingId === farm.id ? (
+                         <div className="w-5 h-5 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+                       ) : (
+                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                         </svg>
+                       )}
+                     </button>
+                     <Link href={`/farm/edit?id=${farm.id}`} className="text-slate-300 hover:text-green-800 transition-all p-2 hover:bg-green-50 rounded-full inline-block">
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                        </svg>
+                     </Link>
+                   </div>
+                 </div>
 
               </div>
             ))}
