@@ -4,6 +4,9 @@ import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import Map, { Marker, NavigationControl, Source, Layer, MapRef } from "react-map-gl/maplibre";
 import * as turf from "@turf/turf";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { scaleSequential } from 'd3-scale';
+import { interpolateYlGn, interpolateBlues } from 'd3-scale-chromatic';
+
 import {
   INDIA_DROUGHT_DATA,
   getSpeiColor,
@@ -22,9 +25,33 @@ interface LocationMapProps {
   children?: React.ReactNode;
 }
 
+const CROP_OPTIONS = [
+  { value: 'wheat', label: 'Wheat' },
+  { value: 'rice', label: 'Rice' },
+  { value: 'maize', label: 'Maize' },
+  { value: 'cotton', label: 'Cotton' },
+  { value: 'sugarcane', label: 'Sugarcane' },
+  { value: 'groundnut', label: 'Groundnut' },
+];
+
 // Convert RGBA [r,g,b,a] to CSS hex
 function rgbaToHex([r, g, b]: [number, number, number, number]): string {
   return `#${[r, g, b].map((c) => c.toString(16).padStart(2, "0")).join("")}`;
+}
+
+// Helper function for fuzzy matching district names against API dataset keys
+function findMapValue(distName: string, data: Record<string, number>): number | undefined {
+  if (!distName || !data) return undefined;
+  const lowerName = distName.toLowerCase();
+  
+  // Exact match
+  if (data[lowerName] !== undefined) return data[lowerName];
+  
+  // Substring Match (e.g. "Nicobar Islands" vs "Nicobar")
+  const matchKey = Object.keys(data).find(k => k.includes(lowerName) || lowerName.includes(k));
+  if (matchKey) return data[matchKey];
+  
+  return undefined;
 }
 
 // Build a MapLibre match expression for state fill colors
@@ -42,26 +69,43 @@ interface HoverInfo {
   x: number;
   y: number;
   state: string;
-  spei: number;
-  category: string;
+  spei?: number;
+  category?: string;
+  district?: string;
+  yieldValue?: number;
+  rainfallValue?: number;
 }
 
 export default function LocationMap({ coordinates, location, farmSizeHectares, farmCircleColor, farmName, onCoordinatesChange, onLocationChange, children }: LocationMapProps) {
   const [position, setPosition] = useState<{lat: number; lng: number} | null>(null);
-  const [geoData, setGeoData] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [stateGeoData, setStateGeoData] = useState<GeoJSON.FeatureCollection | null>(null);
+  const [districtGeoData, setDistrictGeoData] = useState<GeoJSON.FeatureCollection | null>(null);
   const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null);
   const [showOverlay, setShowOverlay] = useState(true);
   const mapRef = useRef<MapRef | null>(null);
   const lastFlyRef = useRef<string>("");
 
+  // Layer state
+  const [activeLayer, setActiveLayer] = useState<'drought' | 'crop' | 'rainfall'>('drought');
+  const [selectedCrop, setSelectedCrop] = useState<string>('wheat');
+  const [selectedYear, setSelectedYear] = useState<number>(2015);
+  
+  // Crop data state
+  const [cropData, setCropData] = useState<Record<string, number>>({});
+  const [colorScale, setColorScale] = useState<any>(null);
+
+  // Rainfall data state
+  const [rainfallData, setRainfallData] = useState<Record<string, number>>({});
+  const [rainfallColorScale, setRainfallColorScale] = useState<any>(null);
+
   // Fly to a state when the user types its name (skip if farm pin already placed)
   useEffect(() => {
-    if (!location || !geoData || location.length < 2) return;
+    if (!location || !stateGeoData || location.length < 2) return;
 
     const timer = setTimeout(() => {
       const query = location.toLowerCase().trim();
       // Find the best-matching state feature
-      const match = geoData.features.find((f) => {
+      const match = stateGeoData.features.find((f) => {
         const name = (f.properties?.NAME_1 || "").toLowerCase();
         return name === query || name.startsWith(query);
       });
@@ -92,15 +136,85 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, f
 
     return () => clearTimeout(timer);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location, geoData]);
+  }, [location, stateGeoData]);
 
-  // Load India states GeoJSON
+  // Load GeoJSONs
   useEffect(() => {
     fetch("/india-states-simplified.json")
       .then((r) => r.json())
-      .then((data) => setGeoData(data))
+      .then((data) => setStateGeoData(data))
       .catch((err) => console.error("Failed to load India GeoJSON:", err));
+
+    fetch("/india-districts.json")
+      .then((r) => r.json())
+      .then((data) => setDistrictGeoData(data))
+      .catch((err) => console.error("Failed to load India Districts GeoJSON:", err));
   }, []);
+
+  // Fetch crop data when active layer is 'crop' or parameters change
+  useEffect(() => {
+    if (activeLayer === 'crop') {
+      fetch(`http://localhost:8000/data/crop-yield?crop=${selectedCrop}&year=${selectedYear}`)
+        .then(res => {
+          if (!res.ok) throw new Error('Data fetch failed');
+          return res.json();
+        })
+        .then(res => {
+          const normalizedData: Record<string, number> = {};
+          for (const [k, v] of Object.entries(res.data)) {
+            normalizedData[k.toLowerCase()] = v as number;
+          }
+          setCropData(normalizedData);
+          
+          // Build color scale
+          const values = Object.values(normalizedData).filter(v => typeof v === 'number' && v > 0) as number[];
+          if (values.length > 0) {
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            // using d3 color
+            const scale = scaleSequential(interpolateYlGn).domain([min, max]);
+            setColorScale(() => scale);
+          } else {
+            setColorScale(null);
+          }
+        })
+        .catch(err => {
+          console.error("Error fetching crop yield:", err);
+          setCropData({});
+          setColorScale(null);
+        });
+    }
+  }, [activeLayer, selectedCrop, selectedYear]);
+
+  // Fetch Rainfall Data
+  useEffect(() => {
+    if (activeLayer === 'rainfall' && Object.keys(rainfallData).length === 0) {
+      fetch(`http://localhost:8000/data/rainfall`)
+        .then(res => {
+          if (!res.ok) throw new Error('Data fetch failed');
+          return res.json();
+        })
+        .then(res => {
+          const normalizedData: Record<string, number> = {};
+          for (const [k, v] of Object.entries(res.data)) {
+            normalizedData[k.toLowerCase()] = v as number;
+          }
+          setRainfallData(normalizedData);
+          const values = Object.values(normalizedData).filter(v => typeof v === 'number' && v > 0) as number[];
+          if (values.length > 0) {
+            const min = Math.min(...values);
+            const max = Math.max(...values);
+            // Cap at 4000mm 
+            const scale = scaleSequential(interpolateBlues).domain([min, Math.min(max, 4000)]);
+            setRainfallColorScale(() => scale);
+          }
+        })
+        .catch(err => {
+          console.error("Error fetching rainfall data:", err);
+          setRainfallData({});
+        });
+    }
+  }, [activeLayer, rainfallData]);
 
   useEffect(() => {
     if (coordinates) {
@@ -186,19 +300,44 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, f
     if (!showOverlay) { setHoverInfo(null); return; }
     const feature = e.features && e.features[0];
     if (feature) {
-      const stateName = feature.properties?.NAME_1 || "Unknown";
-      const spei = INDIA_DROUGHT_DATA[stateName] ?? 0;
-      setHoverInfo({
-        x: e.point.x,
-        y: e.point.y,
-        state: stateName,
-        spei,
-        category: getDroughtCategory(spei),
-      });
+      if (activeLayer === 'drought') {
+          const stateName = feature.properties?.NAME_1 || "Unknown";
+          const spei = INDIA_DROUGHT_DATA[stateName] ?? 0;
+          setHoverInfo({
+            x: e.point.x,
+            y: e.point.y,
+            state: stateName,
+            spei,
+            category: getDroughtCategory(spei),
+          });
+      } else if (activeLayer === 'crop') {
+          const distName = feature.properties?.NAME_2 || "Unknown";
+          const stateName = feature.properties?.NAME_1 || "Unknown";
+          const yieldValue = findMapValue(distName, cropData) ?? 0;
+          setHoverInfo({
+              x: e.point.x,
+              y: e.point.y,
+              state: stateName,
+              district: distName,
+              yieldValue
+          });
+      } else if (activeLayer === 'rainfall') {
+          const distName = feature.properties?.NAME_2 || "Unknown";
+          const stateName = feature.properties?.NAME_1 || "Unknown";
+          const rainfallValue = findMapValue(distName, rainfallData);
+
+          setHoverInfo({
+            x: e.point.x,
+            y: e.point.y,
+            state: stateName,
+            district: distName,
+            rainfallValue
+          });
+      }
     } else {
       setHoverInfo(null);
     }
-  }, [showOverlay]);
+  }, [showOverlay, activeLayer, cropData]);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const onMapLoad = (e: any) => {
@@ -301,16 +440,131 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, f
     }
   };
 
-  const colorExpr = buildColorMatchExpression();
+  const droughtColorExpr = buildColorMatchExpression();
+  
+  // Build MapLibre match expression for district crop colors
+  const cropColorExpr = useMemo(() => {
+      if (!colorScale || Object.keys(cropData).length === 0) return "#e5e7eb";
+      
+      const expr: (string | string[])[] = ["match", ["get", "NAME_2"]];
+      const seen = new Set<string>();
+      for (const feature of districtGeoData?.features || []) {
+          const distName = feature.properties?.NAME_2;
+          if (!distName || seen.has(distName)) continue;
+          
+          const val = findMapValue(distName, cropData);
+          if (val !== undefined && val > 0) {
+              seen.add(distName);
+              expr.push(distName);
+              let color = colorScale(val);
+              if (color && typeof color === 'string') {
+                  expr.push(color);
+              } else {
+                  expr.push("#e5e7eb");
+              }
+          }
+      }
+      if (expr.length === 2) return "#e5e7eb";
+      expr.push("#e5e7eb"); // fallback
+      return expr as any;
+  }, [cropData, colorScale, districtGeoData]);
+
+  // Build MapLibre match expression for district rainfall colors
+  const rainfallColorExpr = useMemo(() => {
+      if (!rainfallColorScale || Object.keys(rainfallData).length === 0) return "#e5e7eb";
+      
+      const expr: (string | string[])[] = ["match", ["get", "NAME_2"]];
+      const seen = new Set<string>();
+      for (const feature of districtGeoData?.features || []) {
+          const distName = feature.properties?.NAME_2;
+          if (!distName || seen.has(distName)) continue;
+          
+          const val = findMapValue(distName, rainfallData);
+          if (val !== undefined && val > 0) {
+              seen.add(distName);
+              expr.push(distName);
+              let color = rainfallColorScale(val);
+              if (color && typeof color === 'string') {
+                  expr.push(color);
+              } else {
+                  expr.push("#e5e7eb");
+              }
+          }
+      }
+      if (expr.length === 2) return "#e5e7eb";
+      expr.push("#e5e7eb"); // fallback
+      return expr as any;
+  }, [rainfallData, rainfallColorScale, districtGeoData]);
 
   return (
     <div style={{ position: "fixed", top: 64, left: 0, right: 0, bottom: 0, zIndex: 40 }}>
+      {/* Configuration Control Panel */}
+      <div 
+        style={{
+            position: 'absolute', 
+            top: 20, 
+            right: 80, 
+            zIndex: 50,
+            background: 'rgba(255, 255, 255, 0.95)',
+            backdropFilter: 'blur(8px)',
+            padding: '16px',
+            borderRadius: '8px',
+            boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '12px'
+        }}
+      >
+        <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 'bold' }}>Map Layers</h3>
+        
+        <div>
+            <label style={{ display: 'block', fontSize: '11px', marginBottom: '4px', color: '#4b5563', fontWeight: '600' }}>Data View</label>
+            <select 
+                value={activeLayer} 
+                onChange={(e) => setActiveLayer(e.target.value as 'drought' | 'crop' | 'rainfall')}
+                style={{ width: '100%', padding: '6px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '12px', background: 'white' }}
+            >
+                <option value="drought">State Drought Index (SPEI)</option>
+                <option value="crop">District Crop Yield History</option>
+                <option value="rainfall">District Rainfall (Annual Avg)</option>
+            </select>
+        </div>
+
+        {activeLayer === 'crop' && (
+            <>
+                <div>
+                    <label style={{ display: 'block', fontSize: '11px', marginBottom: '4px', color: '#4b5563', fontWeight: '600' }}>Crop Type</label>
+                    <select 
+                        value={selectedCrop} 
+                        onChange={(e) => setSelectedCrop(e.target.value)}
+                        style={{ width: '100%', padding: '6px', borderRadius: '6px', border: '1px solid #d1d5db', fontSize: '12px', background: 'white' }}
+                    >
+                        {CROP_OPTIONS.map(opt => (
+                            <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ))}
+                    </select>
+                </div>
+                <div>
+                    <label style={{ display: 'block', fontSize: '11px', marginBottom: '4px', color: '#4b5563', fontWeight: '600' }}>Year ({selectedYear})</label>
+                    <input 
+                        type="range" 
+                        min={1966} 
+                        max={2017} 
+                        value={selectedYear} 
+                        onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                        style={{ width: '100%' }}
+                    />
+                </div>
+            </>
+        )}
+      </div>
+
       <Map
         ref={mapRef}
         initialViewState={{
           longitude: 78.9629,
           latitude: 20.5937,
-          zoom: 5,
+          zoom: 4.5,
           pitch: 60,
           bearing: -17,
         }}
@@ -321,20 +575,28 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, f
         onLoad={onMapLoad}
         onMouseMove={handleHover}
         onMouseLeave={() => setHoverInfo(null)}
-        interactiveLayerIds={showOverlay ? ["drought-fill"] : []}
+        interactiveLayerIds={
+          showOverlay
+            ? activeLayer === 'drought'
+              ? ["drought-fill"]
+              : activeLayer === 'crop'
+                ? ["crop-fill"]
+                : ["rainfall-fill"]
+            : []
+        }
         style={{ width: "100%", height: "100%" }}
       >
         <NavigationControl position="top-right" visualizePitch />
 
         {/* Drought data overlay */}
-        {geoData && showOverlay && (
-          <Source id="india-drought" type="geojson" data={geoData}>
+        {activeLayer === 'drought' && stateGeoData && showOverlay && (
+          <Source id="india-drought" type="geojson" data={stateGeoData}>
             <Layer
               id="drought-fill"
               type="fill"
               paint={{
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                "fill-color": colorExpr as any,
+                "fill-color": droughtColorExpr as any,
                 "fill-opacity": 0.55,
               }}
             />
@@ -348,6 +610,52 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, f
               }}
             />
           </Source>
+        )}
+        
+        {/* District Crop Data layer */}
+        {activeLayer === 'crop' && districtGeoData && showOverlay && (
+           <Source id="india-crop" type="geojson" data={districtGeoData}>
+             <Layer
+               id="crop-fill"
+               type="fill"
+               paint={{
+                 "fill-color": cropColorExpr as any,
+                 "fill-opacity": 0.65,
+               }}
+             />
+             <Layer
+               id="crop-outline"
+               type="line"
+               paint={{
+                 "line-color": "#ffffff",
+                 "line-width": 1,
+                 "line-opacity": 0.4,
+               }}
+             />
+           </Source>
+        )}
+
+        {/* District Rainfall Data layer */}
+        {activeLayer === 'rainfall' && districtGeoData && showOverlay && (
+           <Source id="india-rainfall" type="geojson" data={districtGeoData}>
+             <Layer
+               id="rainfall-fill"
+               type="fill"
+               paint={{
+                 "fill-color": rainfallColorExpr as any,
+                 "fill-opacity": 0.65,
+               }}
+             />
+             <Layer
+               id="rainfall-outline"
+               type="line"
+               paint={{
+                 "line-color": "#ffffff",
+                 "line-width": 1,
+                 "line-opacity": 0.4,
+               }}
+             />
+           </Source>
         )}
 
         {/* Farm radius circle */}
@@ -426,80 +734,108 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, f
             borderRadius: 10,
             padding: "8px 12px",
             pointerEvents: "none",
-            zIndex: 50,
+            zIndex: 60,
             boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
             fontSize: 11,
             lineHeight: 1.4,
             maxWidth: 180,
           }}
         >
-          <div style={{ fontWeight: 700, marginBottom: 2 }}>{hoverInfo.state}</div>
-          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
-            <span style={{ color: "#6b7280" }}>SPEI:</span>
-            <span
-              style={{
-                fontWeight: 600,
-                color: hoverInfo.spei < -0.5 ? "#b45309" : hoverInfo.spei > 0.5 ? "#166534" : "#78716c",
-              }}
-            >
-              {hoverInfo.spei.toFixed(2)}
-            </span>
-          </div>
-          <div style={{ color: "#9ca3af", fontSize: 10 }}>{hoverInfo.category}</div>
+          {activeLayer === 'drought' && (
+              <>
+                <div style={{ fontWeight: 700, marginBottom: 2 }}>{hoverInfo.state}</div>
+                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    <span style={{ color: "#6b7280" }}>SPEI:</span>
+                    <span
+                    style={{
+                        fontWeight: 600,
+                        color: hoverInfo.spei !== undefined && hoverInfo.spei < -0.5 ? "#b45309" : hoverInfo.spei !== undefined && hoverInfo.spei > 0.5 ? "#166534" : "#78716c",
+                    }}
+                    >
+                    {hoverInfo.spei?.toFixed(2)}
+                    </span>
+                </div>
+                <div style={{ color: "#9ca3af", fontSize: 10 }}>{hoverInfo.category}</div>
+              </>
+          )}
+          {activeLayer === 'crop' && (
+              <>
+                <div style={{ fontWeight: 700, marginBottom: 2 }}>{hoverInfo.district}, {hoverInfo.state}</div>
+                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    <span style={{ color: "#6b7280" }}>Yield:</span>
+                    <span style={{ fontWeight: 600, color: "#166534" }}>
+                    {hoverInfo.yieldValue ? `${hoverInfo.yieldValue.toFixed(1)} Kg/ha` : 'No Data'}
+                    </span>
+                </div>
+              </>
+          )}
+          {activeLayer === 'rainfall' && (
+              <>
+                <div style={{ fontWeight: 700, marginBottom: 2 }}>{hoverInfo.district}, {hoverInfo.state}</div>
+                <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+                    <span style={{ color: "#6b7280" }}>Annual Rainfall:</span>
+                    <span style={{ fontWeight: 600, color: "#2e86c1" }}>
+                    {hoverInfo.rainfallValue ? `${hoverInfo.rainfallValue.toFixed(1)} mm` : 'No Data'}
+                    </span>
+                </div>
+              </>
+          )}
         </div>
       )}
 
-      {/* Overlay toggle + compact legend */}
-      <div
-        style={{
-          position: "absolute",
-          bottom: 24,
-          right: 24,
-          zIndex: 50,
-          background: "rgba(255,255,255,0.92)",
-          backdropFilter: "blur(8px)",
-          borderRadius: 12,
-          padding: "8px 12px",
-          fontSize: 9,
-          boxShadow: "0 1px 6px rgba(0,0,0,0.12)",
-          maxWidth: 150,
-        }}
-      >
+      {/* Overlay toggle + compact legend for drought */}
+      {activeLayer === 'drought' && (
         <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: showOverlay ? 4 : 0,
-            cursor: "pointer",
-            userSelect: "none",
-          }}
-          onClick={(e) => { e.stopPropagation(); setShowOverlay(!showOverlay); }}
+            style={{
+            position: "absolute",
+            bottom: 24,
+            right: 24,
+            zIndex: 50,
+            background: "rgba(255,255,255,0.92)",
+            backdropFilter: "blur(8px)",
+            borderRadius: 12,
+            padding: "8px 12px",
+            fontSize: 9,
+            boxShadow: "0 1px 6px rgba(0,0,0,0.12)",
+            maxWidth: 150,
+            }}
         >
-          <span style={{ fontWeight: 700, fontSize: 10 }}>Drought Index</span>
-          <span style={{ fontSize: 10, color: "#9ca3af", marginLeft: 6 }}>
-            {showOverlay ? "▼" : "▶"}
-          </span>
+            <div
+            style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: showOverlay ? 4 : 0,
+                cursor: "pointer",
+                userSelect: "none",
+            }}
+            onClick={(e) => { e.stopPropagation(); setShowOverlay(!showOverlay); }}
+            >
+            <span style={{ fontWeight: 700, fontSize: 10 }}>Drought Index</span>
+            <span style={{ fontSize: 10, color: "#9ca3af", marginLeft: 6 }}>
+                {showOverlay ? "▼" : "▶"}
+            </span>
+            </div>
+            {showOverlay && (
+            <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                {LEGEND_ITEMS.map((item) => (
+                <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    <span
+                    style={{
+                        width: 8,
+                        height: 8,
+                        borderRadius: 2,
+                        backgroundColor: item.color,
+                        flexShrink: 0,
+                    }}
+                    />
+                    <span style={{ color: "#374151" }}>{item.label}</span>
+                </div>
+                ))}
+            </div>
+            )}
         </div>
-        {showOverlay && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 1 }}>
-            {LEGEND_ITEMS.map((item) => (
-              <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                <span
-                  style={{
-                    width: 8,
-                    height: 8,
-                    borderRadius: 2,
-                    backgroundColor: item.color,
-                    flexShrink: 0,
-                  }}
-                />
-                <span style={{ color: "#374151" }}>{item.label}</span>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Pin status badge */}
       {position && (

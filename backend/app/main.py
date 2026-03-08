@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.database import close_client
-from app.routers import credit_applications, farmers, report_generator, users
+from app.routers import credit_applications, farmers, report_generator, users, data
 from app.routers.ml import analyze
 
 
@@ -34,6 +34,7 @@ app.include_router(users.router)
 app.include_router(credit_applications.router)
 app.include_router(report_generator.router)
 app.include_router(analyze.router)
+app.include_router(data.router)
 
 
 @app.get("/", tags=["health"])
