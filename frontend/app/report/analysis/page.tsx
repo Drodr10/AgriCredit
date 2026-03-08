@@ -21,6 +21,7 @@ function AnalysisContent() {
   const id = searchParams.get("id");
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -37,7 +38,60 @@ function AnalysisContent() {
     }
   }, [id]);
 
-  const handlePrint = () => { window.print(); };
+  const handleGeneratePDF = async () => {
+    if (!id || generating) return;
+    
+    // Open window immediately to prevent popup blockers
+    const reportWindow = window.open("", "_blank");
+    if (!reportWindow) {
+      alert("Please allow popups for this site to view the PDF report.");
+      return;
+    }
+
+    // Write loading state to the new window
+    reportWindow.document.write(`
+      <html>
+        <head>
+          <title>Generating Report...</title>
+          <script src="https://cdn.tailwindcss.com"></script>
+        </head>
+        <body class="bg-slate-50 flex items-center justify-center min-h-screen font-sans">
+          <div className="text-center">
+            <div className="w-12 h-12 border-4 border-green-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <h1 class="text-xl font-bold text-slate-900">Generating Technical Report...</h1>
+            <p class="text-slate-500 mt-2 text-sm">Gemini is analyzing the data and drafting the 2-page report.</p>
+          </div>
+        </body>
+      </html>
+    `);
+
+    setGenerating(true);
+    try {
+      const res = await fetch(`http://localhost:8000/reports/generate/${id}`, { method: "POST" });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ detail: "Failed to generate report" }));
+        reportWindow.document.body.innerHTML = `<div class="p-8 text-red-600 font-bold">Error: ${err.detail || "Failed to generate report"}</div>`;
+        return;
+      }
+      const html = await res.text();
+      
+      // Inject the generated HTML
+      reportWindow.document.open();
+      reportWindow.document.write(html);
+      reportWindow.document.close();
+      
+      // Wait for Tailwind and layout to settle
+      setTimeout(() => {
+        reportWindow.print();
+      }, 2000);
+
+    } catch (err) {
+      console.error("Report generation failed:", err);
+      reportWindow.document.body.innerHTML = `<div class="p-8 text-red-600 font-bold">Failed to connect to backend. Is it running?</div>`;
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -100,9 +154,18 @@ function AnalysisContent() {
             <Link href={`/report/summary?id=${id}`} className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all shadow-sm cursor-pointer">
               Farmer Summary
             </Link>
-            <button onClick={handlePrint} className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all shadow-sm cursor-pointer">
-              <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-              Export PDF
+            <button onClick={handleGeneratePDF} disabled={generating} className={`flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm cursor-pointer ${generating ? "bg-green-50 border border-green-200 text-green-600" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
+              {generating ? (
+                <>
+                  <div className="w-4 h-4 mr-2 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+                  Generating…
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                  AI Report PDF
+                </>
+              )}
             </button>
           </div>
         </header>

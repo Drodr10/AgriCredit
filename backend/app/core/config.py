@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     mongodb_db: str
     app_title: str
     app_version: str
+    gemini_api_key: str | None = None
 
     model_config = SettingsConfigDict(
         env_file=str(ENV_FILE), 
