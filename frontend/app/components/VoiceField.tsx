@@ -15,7 +15,7 @@ export const VoiceField = ({ label, context, lang, children }: Props) => {
       <div className="flex justify-between items-center mb-2">
         <label className="font-bold text-gray-700">{label}</label>
         <button 
-          onClick={() => speak(label, context)}
+          onClick={() => speak(label)}
           className={`p-2 rounded-full ${isPlaying ? 'bg-green-500' : 'bg-gray-200'}`}
         >
           🔊
