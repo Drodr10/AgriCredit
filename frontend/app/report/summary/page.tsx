@@ -3,6 +3,8 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
+import { VoiceReport } from "../../../components/VoiceReport";
+import { useVoiceContext } from "../../../components/VoiceProvider";
 
 export default function FarmerSummaryPage() {
   return (
@@ -21,6 +23,7 @@ function SummaryContent() {
   const id = searchParams.get("id");
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const { lang } = useVoiceContext();
 
   useEffect(() => {
     if (id) {
@@ -74,6 +77,11 @@ function SummaryContent() {
             This season looks <br />
             <span className={`${riskColor} italic`}>{data.risk_tier} RISK</span>
           </h1>
+          
+          <VoiceReport 
+             mlData={{ risktier: data.risk_tier, pd_1year: data.bad_season_probability / 100 }} 
+             lang={lang} 
+          />
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-8 mt-12 bg-white px-8 py-6 rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50">
             <div className="text-center">

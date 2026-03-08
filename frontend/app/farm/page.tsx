@@ -5,6 +5,8 @@ import { useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import dynamic from "next/dynamic";
+import { VoiceInput } from "../../components/VoiceInput";
+import { useVoiceContext } from "../../components/VoiceProvider";
 
 const LocationMap = dynamic(() => import("@/app/components/LocationMap"), {
   ssr: false,
@@ -45,7 +47,8 @@ const SOIL_COLORS: Record<string, string> = {
 export default function OnboardingFlow() {
   const router = useRouter();
   const { isLoaded, isSignedIn, user } = useUser();
-  const [step, setStep] = useState(1);
+  const { lang } = useVoiceContext();
+  const [step, setStep] = useState<number>(1);
   const [formData, setFormData] = useState({
     name: "",
     location: "",
@@ -143,15 +146,17 @@ export default function OnboardingFlow() {
               <p className="text-slate-400 text-sm font-medium mb-6">
                 Give your farm a name. This is how it will appear across your dashboard and reports.
               </p>
-              <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">
-                Farm Nickname
-              </label>
-              <input
-                type="text"
+              <VoiceInput
+                label="Farm Nickname"
+                name="name"
+                context="account"
+                lang={lang}
+                options={null}
                 placeholder="e.g. Ludhiana Plot A"
                 className="w-full bg-white/80 border border-gray-200 rounded-xl px-5 py-3 text-lg font-bold focus:border-green-800 focus:ring-4 focus:ring-green-50 outline-none transition-all placeholder:text-slate-200 text-slate-900 shadow-sm"
+                labelClassName="text-sm font-medium text-gray-700"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e: any) => setFormData({ ...formData, name: e.target.value })}
               />
             </div>
           )}
@@ -163,15 +168,17 @@ export default function OnboardingFlow() {
               <p className="text-slate-400 text-sm font-medium mb-6">
                 Pin your location on the map and set your farm scale.
               </p>
-              <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">
-                State & District
-              </label>
-              <input
-                type="text"
+              <VoiceInput
+                label="State & District"
+                name="location"
+                context="account"
+                lang={lang}
+                options={null}
                 placeholder="e.g. Punjab, Bathinda"
                 className="w-full bg-white/80 border border-gray-200 rounded-xl px-5 py-3 text-lg font-bold focus:border-green-800 focus:ring-4 focus:ring-green-50 outline-none transition-all placeholder:text-slate-200 text-slate-900 shadow-sm"
+                labelClassName="text-sm font-medium text-gray-700"
                 value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                onChange={(e: any) => setFormData({ ...formData, location: e.target.value })}
               />
             </div>
           )}
@@ -179,8 +186,20 @@ export default function OnboardingFlow() {
           {/* ──── Step 3: Soil Composition ──── */}
           {step === 3 && (
             <div>
-              <h1 className="text-2xl font-black tracking-tighter text-slate-900 mb-1">Soil Composition</h1>
-              <p className="text-slate-400 text-sm font-medium mb-6">
+              <VoiceInput
+                label="Soil Composition"
+                name="soil_category"
+                context="inputs"
+                lang={lang}
+                options={SOIL_TYPES.map(s => ({ value: s.id, label: s.name }))}
+                value={formData.soil_category}
+                onChange={(e: any) => setFormData({ ...formData, soil_category: e.target.value })}
+                hiddenInput={true}
+                className=""
+                placeholder=""
+                labelClassName="text-2xl font-black tracking-tighter text-slate-900 mb-1"
+              />
+              <p className="text-slate-400 text-sm font-medium mb-6 mt-[-10px]">
                 Healthy crops start from the ground up. Which best describes your land?
               </p>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
@@ -225,9 +244,20 @@ export default function OnboardingFlow() {
               </p>
 
               {/* Irrigation */}
-              <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-3 border-b border-gray-200/60 pb-1">
-                Irrigation Strategy
-              </h3>
+              <VoiceInput
+                label="Irrigation Strategy"
+                name="irrigation_type"
+                context="inputs"
+                lang={lang}
+                options={IRRIGATION_TYPES.map(t => ({ value: t.id, label: t.name }))}
+                value={formData.irrigation_type}
+                onChange={(e: any) => setFormData({ ...formData, irrigation_type: e.target.value })}
+                hiddenInput={true}
+                className=""
+                placeholder=""
+                labelClassName="text-[10px] font-black text-slate-300 uppercase tracking-widest block"
+              />
+              <div className="border-b border-gray-200/60 pb-1 mb-3 mt-[-10px]"></div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
                 {IRRIGATION_TYPES.map((type) => (
                   <button
@@ -260,9 +290,20 @@ export default function OnboardingFlow() {
               </div>
 
               {/* Machinery */}
-              <h3 className="text-[10px] font-black text-slate-300 uppercase tracking-widest mb-3 border-b border-gray-200/60 pb-1">
-                Machinery & Labor
-              </h3>
+              <VoiceInput
+                label="Machinery & Labor"
+                name="machinery_type"
+                context="inputs"
+                lang={lang}
+                options={MACHINERY_TYPES.map(t => ({ value: t.id, label: t.name }))}
+                value={formData.machinery_type}
+                onChange={(e: any) => setFormData({ ...formData, machinery_type: e.target.value })}
+                hiddenInput={true}
+                className=""
+                placeholder=""
+                labelClassName="text-[10px] font-black text-slate-300 uppercase tracking-widest block"
+              />
+              <div className="border-b border-gray-200/60 pb-1 mb-3 mt-[-10px]"></div>
               <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                 {MACHINERY_TYPES.map((type) => (
                   <button
@@ -351,9 +392,19 @@ export default function OnboardingFlow() {
             padding: "14px 20px",
             boxShadow: "0 4px 24px rgba(0,0,0,0.12)",
           }}>
-            <label className="block text-[9px] font-bold text-slate-400 mb-1 uppercase tracking-widest text-center">
-              Farm Scale (Hectares)
-            </label>
+            <VoiceInput
+                label="Farm Scale (Hectares)"
+                name="farm_size_hectares"
+                context="inputs"
+                lang={lang}
+                options={null}
+                value={formData.farm_size_hectares}
+                onChange={(e: any) => setFormData({ ...formData, farm_size_hectares: parseFloat(e.target.value) || 0 })}
+                hiddenInput={true}
+                className=""
+                placeholder=""
+                labelClassName="block text-[9px] font-bold text-slate-400 uppercase tracking-widest text-center"
+            />
             <div className="text-3xl font-black text-green-800 text-center mb-2 tabular-nums tracking-tighter">
               {formData.farm_size_hectares}
             </div>

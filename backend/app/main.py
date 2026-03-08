@@ -6,8 +6,9 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.database import close_client
-from app.routers import credit_applications, farmers, report_generator, users, data
+from app.routers import credit_applications, farmers, report_generator, users, data, voice
 from app.routers.ml import analyze
+from elevenlabs.client import ElevenLabs
 
 
 @asynccontextmanager
@@ -35,6 +36,14 @@ app.include_router(credit_applications.router)
 app.include_router(report_generator.router)
 app.include_router(analyze.router)
 app.include_router(data.router)
+app.include_router(voice.router)
+
+import os
+elev_client = None
+if os.getenv("ELEVENLABS_API_KEY"):
+    elev_client = ElevenLabs(api_key=os.getenv("ELEVENLABS_API_KEY"))
+app.state.voice_client = elev_client
+app.state.lang = "hi"
 
 
 @app.get("/", tags=["health"])

@@ -3,9 +3,12 @@
 import { useUser, RedirectToSignIn } from "@clerk/nextjs";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { VoiceInput } from "../../components/VoiceInput";
+import { useVoiceContext } from "../../components/VoiceProvider";
 
 export default function ProfilePage() {
   const { isLoaded, isSignedIn, user } = useUser();
+  const { lang } = useVoiceContext();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -104,41 +107,47 @@ export default function ProfilePage() {
           
           {/* Experience & Birthday */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="group">
-              <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-800 transition-colors">Years of Farming Experience</label>
-              <input
-                type="number"
-                min="0"
-                className="w-full bg-slate-50 border border-gray-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-800 focus:bg-white outline-none transition-all text-slate-900"
-                value={formData.experience_years}
-                onChange={(e) => setFormData({ ...formData, experience_years: parseInt(e.target.value) || 0 })}
-              />
-              <p className="text-slate-300 text-xs mt-3 font-medium italic">How many total years have you been farming? Enter 0 if this is your first season.</p>
-            </div>
-            <div className="group">
-              <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-800 transition-colors">Birthday</label>
-              <input
-                type="date"
-                min="1920-01-01"
-                max={new Date().toISOString().split("T")[0]}
-                className="w-full bg-slate-50 border border-gray-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-800 focus:bg-white outline-none transition-all text-slate-900"
-                value={formData.birthday}
-                onChange={(e) => setFormData({ ...formData, birthday: e.target.value })}
-              />
-            </div>
+            <VoiceInput
+              label="Years of Farming Experience"
+              name="experience_years"
+              context="account"
+              lang={lang}
+              value={formData.experience_years.toString()}
+              onChange={(e: any) => setFormData({ ...formData, experience_years: parseInt(e.target.value) || 0 })}
+              className="w-full bg-slate-50 border border-gray-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-800 focus:bg-white outline-none transition-all text-slate-900"
+              placeholder="0, 5, 10..."
+              labelClassName="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-800 transition-colors"
+              options={null}
+            />
+            <VoiceInput
+              label="Birthday"
+              name="birthday"
+              type="date"
+              context="account"
+              lang={lang}
+              value={formData.birthday}
+              onChange={(e: any) => setFormData({ ...formData, birthday: e.target.value })}
+              className="w-full bg-slate-50 border border-gray-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-800 focus:bg-white outline-none transition-all text-slate-900"
+              placeholder=""
+              labelClassName="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-800 transition-colors"
+              options={null}
+            />
           </div>
 
           {/* Phone Number */}
-          <div className="group">
-            <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-800 transition-colors">Phone Number</label>
-            <input
-              type="tel"
-              placeholder="+91 XXXXX XXXXX"
-              className="w-full bg-slate-50 border border-gray-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-800 focus:bg-white outline-none transition-all text-slate-900 tracking-wider"
-              value={formData.phone}
-              onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-            />
-          </div>
+          <VoiceInput
+            label="Phone Number"
+            name="phone"
+            type="tel"
+            context="account"
+            lang={lang}
+            value={formData.phone}
+            onChange={(e: any) => setFormData({ ...formData, phone: e.target.value })}
+            className="w-full bg-slate-50 border border-gray-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-800 focus:bg-white outline-none transition-all text-slate-900 tracking-wider"
+            placeholder="+91 XXXXX XXXXX"
+            labelClassName="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-800 transition-colors"
+            options={null}
+          />
 
           {/* National ID */}
           <div className="bg-slate-50 p-8 rounded-3xl border border-gray-200 relative overflow-hidden">
@@ -147,13 +156,17 @@ export default function ProfilePage() {
                 <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
             </div>
-            <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest">Aadhaar Card Number</label>
-            <input
-              type="text"
-              placeholder="XXXX - XXXX - XXXX"
-              className="w-full bg-white border border-gray-200 rounded-2xl px-6 py-4 text-2xl font-black focus:border-green-800 focus:ring-4 focus:ring-green-50 transition-all placeholder:text-slate-100 tracking-widest text-slate-900"
+            <VoiceInput
+              label="Aadhaar Card Number"
+              name="national_id"
+              context="account"
+              lang={lang}
               value={formData.national_id}
-              onChange={(e) => setFormData({ ...formData, national_id: e.target.value })}
+              onChange={(e: any) => setFormData({ ...formData, national_id: e.target.value })}
+              className="w-full bg-white border border-gray-200 rounded-2xl px-6 py-4 text-2xl font-black focus:border-green-800 focus:ring-4 focus:ring-green-50 transition-all placeholder:text-slate-100 tracking-widest text-slate-900"
+              placeholder="XXXX - XXXX - XXXX"
+              labelClassName="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest"
+              options={null}
             />
           </div>
 

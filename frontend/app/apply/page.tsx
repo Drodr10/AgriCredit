@@ -4,14 +4,16 @@ import { useUser } from "@clerk/nextjs";
 import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { VoiceInput } from "../../components/VoiceInput";
+import { useVoiceContext } from "../../components/VoiceProvider";
 
 const LOAN_PURPOSES = [
-  { id: "seeds", label: "Seeds & Sowing" },
-  { id: "machines", label: "Machinery & Equipment" },
-  { id: "fertilizers", label: "Fertilizers & Pesticides" },
-  { id: "labor", label: "Labor Costs" },
-  { id: "irrigation", label: "Irrigation Systems" },
-  { id: "other", label: "Other Operational Needs" },
+  { id: "seeds", label: "Seeds & Sowing बीज ਬੀਜ" },
+  { id: "machines", label: "Machinery & Equipment मशीनें ਮਸ਼ੀਨਾਂ ट्रैक्टर" },
+  { id: "fertilizers", label: "Fertilizers & Pesticides उर्वरक ਖਾद कीटनाशक" },
+  { id: "labor", label: "Labor Costs श्रम ਮਜ਼ਦੂਰੀ" },
+  { id: "irrigation", label: "Irrigation Systems सिंचाई ਸਿੰਚਾਈ पानी" },
+  { id: "other", label: "Other Operational Needs अन्य ਹੋਰ" },
 ];
 
 export default function CreditApplicationPage() {
@@ -46,6 +48,37 @@ function CreditApplicationForm() {
     has_insurance: false,
     insurance_type: "",
   });
+  const { lang, isVoiceEnabled } = useVoiceContext();
+
+  const t = {
+    hi: {
+      title: "क्रेडिट आवेदन",
+      subtitle: "हमारे एआई-ड्रिवन जोखिम मूल्यांकन का उपयोग करके एक अनुकूलित कृषि ऋण के लिए आवेदन करें।",
+      submit: "एआई जोखिम विश्लेषण उत्पन्न करें",
+      processing: "विश्लेषण संसाधित कर रहा है...",
+      data_security: "आपका डेटा एग्रीक्रेडिट एमएल इंजन द्वारा वास्तविक समय में संसाधित किया जाता है।"
+    },
+    pa: {
+      title: "ਕ੍ਰੈਡਿਟ ਐਪਲੀਕੇਸ਼ਨ",
+      subtitle: "ਸਾਡੇ AI-ਸੰਚਾਲਿਤ ਜੋਖਮ ਮੁਲਾਂਕਣ ਦੀ ਵਰਤੋਂ ਕਰਕੇ ਇੱਕ ਅਨੁਕੂਲਿਤ ਖੇਤੀਬਾੜੀ ਲੋਨ ਲਈ ਅਪਲਾਈ ਕਰੋ।",
+      submit: "AI ਜੋਖਮ ਵਿਸ਼ਲੇਸ਼ਣ ਤਿਆਰ ਕਰੋ",
+      processing: "ਵਿਸ਼ਲੇਸ਼ਣ ਦੀ ਪ੍ਰਕਿਰਿਆ ਜਾਰੀ ਹੈ...",
+      data_security: "ਤੁਹਾਡਾ ਡੇਟਾ ਐਗਰੀਕ੍ਰੇਡਿਟ ML ਇੰਜਣ ਦੁਆਰਾ ਰੀਅਲ-ਟਾਈਮ ਵਿੱਚ ਪ੍ਰੋਸੈਸ ਕੀਤਾ ਜਾਂਦਾ ਹੈ।"
+    },
+    en: {
+      title: "Credit Application",
+      subtitle: "Apply for a tailored agricultural loan using our AI-driven risk assessment.",
+      submit: "Generate AI Risk Analysis",
+      processing: "Processing Analysis...",
+      data_security: "Your data is processed in real-time by the AgriCredit ML Engine."
+    }
+  }[lang as 'hi' | 'pa' | 'en'] || {
+    title: "Credit Application",
+    subtitle: "Apply for a tailored agricultural loan using our AI-driven risk assessment.",
+    submit: "Generate AI Risk Analysis",
+    processing: "Processing Analysis...",
+    data_security: "Your data is processed in real-time by the AgriCredit ML Engine."
+  };
 
   useEffect(() => {
     if (isLoaded && isSignedIn && user) {
@@ -122,8 +155,8 @@ function CreditApplicationForm() {
             </svg>
             Back to Dashboard
           </Link>
-          <h1 className="text-4xl font-black tracking-tight uppercase italic">Credit <span className="text-green-600">Application</span></h1>
-          <p className="text-slate-500 mt-2 font-medium">Apply for a tailored agricultural loan using our AI-driven risk assessment.</p>
+          <h1 className="text-4xl font-black tracking-tight uppercase italic">{t.title.split(' ')[0]} <span className="text-green-600">{t.title.split(' ')[1] || ""}</span></h1>
+          <p className="text-slate-500 mt-2 font-medium">{t.subtitle}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-8 bg-white p-8 sm:p-10 rounded-[2.5rem] border border-slate-200 shadow-xl shadow-slate-200/50">
@@ -149,64 +182,68 @@ function CreditApplicationForm() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Season */}
-            <div className="group">
-              <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-600 transition-colors">Season</label>
-              <select 
-                required
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-500 focus:bg-white outline-none transition-all appearance-none cursor-pointer"
-                value={formData.season}
-                onChange={(e) => setFormData({ ...formData, season: e.target.value })}
-              >
-                <option value="" disabled>Select season...</option>
-                <option value="kharif">Kharif (Jul – Oct)</option>
-                <option value="rabi">Rabi (Nov – Mar)</option>
-              </select>
-            </div>
+            <VoiceInput
+              label="Season"
+              name="season"
+              context="inputs"
+              lang={lang}
+              value={formData.season}
+              onChange={(e: any) => setFormData({ ...formData, season: e.target.value })}
+              className=""
+              placeholder=""
+              labelClassName=""
+              options={[
+                { value: "kharif", label: "Kharif (Jul – Oct) खरीफ ਸਾਉਣੀ" },
+                { value: "rabi", label: "Rabi (Nov – Mar) रबी ਹਾੜੀ" }
+              ]}
+            />
 
             {/* Primary Crop */}
-            <div className="group">
-              <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-600 transition-colors">Primary Crop</label>
-              <select 
-                required
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-500 focus:bg-white outline-none transition-all appearance-none cursor-pointer"
-                value={formData.crop_type}
-                onChange={(e) => setFormData({ ...formData, crop_type: e.target.value })}
-              >
-                <option value="" disabled>Select crop...</option>
-                <option value="rice">Rice</option>
-                <option value="wheat">Wheat</option>
-              </select>
-            </div>
+            <VoiceInput
+              label="Primary Crop"
+              name="crop_type"
+              context="inputs"
+              lang={lang}
+              value={formData.crop_type}
+              onChange={(e: any) => setFormData({ ...formData, crop_type: e.target.value })}
+              className=""
+              placeholder=""
+              labelClassName=""
+              options={[
+                { value: "rice", label: "Rice चावल ਚਾਵਲ ਝੋਨਾ" },
+                { value: "wheat", label: "Wheat गेहूं ਕਣਕ" }
+              ]}
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {/* Loan Amount */}
-            <div className="group">
-              <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-600 transition-colors">Loan Amount Desired ($)</label>
-              <input 
-                required
-                type="number" 
-                min="100"
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-500 focus:bg-white outline-none transition-all"
-                value={formData.amount_requested || ""}
-                onChange={(e) => setFormData({ ...formData, amount_requested: parseFloat(e.target.value) || 0 })}
-              />
-            </div>
+            <VoiceInput
+              label="Loan Amount Desired ($)"
+              name="amount_requested"
+              context="inputs"
+              lang={lang}
+              value={formData.amount_requested || ""}
+              onChange={(e: any) => setFormData({ ...formData, amount_requested: parseFloat(e.target.value) || 0 })}
+              className=""
+              placeholder=""
+              labelClassName=""
+              options={null}
+            />
 
             {/* Loan Purpose */}
-            <div className="group">
-              <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-600 transition-colors">Purpose of Loan</label>
-              <select 
-                required
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-500 focus:bg-white outline-none transition-all appearance-none cursor-pointer"
-                value={formData.loan_purpose}
-                onChange={(e) => setFormData({ ...formData, loan_purpose: e.target.value })}
-              >
-                {LOAN_PURPOSES.map((p) => (
-                  <option key={p.id} value={p.id}>{p.label}</option>
-                ))}
-              </select>
-            </div>
+            <VoiceInput
+              label="Purpose of Loan"
+              name="loan_purpose"
+              context="inputs"
+              lang={lang}
+              value={formData.loan_purpose}
+              onChange={(e: any) => setFormData({ ...formData, loan_purpose: e.target.value })}
+              className=""
+              placeholder=""
+              labelClassName=""
+              options={LOAN_PURPOSES.map(p => ({ value: p.id, label: p.label }))}
+            />
           </div>
 
           <div className="pt-4 border-t border-slate-100">
@@ -228,14 +265,17 @@ function CreditApplicationForm() {
             {/* Insurance Type - Conditional */}
             {formData.has_insurance && (
               <div className="mt-6 group animate-in fade-in slide-in-from-top-2 duration-300">
-                <label className="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest group-focus-within:text-green-600 transition-colors">Insurance Provider/Type</label>
-                <input 
-                  required={formData.has_insurance}
-                  type="text" 
+                <VoiceInput
+                  label="Insurance Provider/Type"
+                  name="insurance_type"
+                  context="inputs"
+                  lang={lang}
+                  options={null}
+                  value={formData.insurance_type}
+                  onChange={(e: any) => setFormData({ ...formData, insurance_type: e.target.value })}
                   placeholder="e.g. PMFBY Multipurpose"
                   className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-500 focus:bg-white outline-none transition-all"
-                  value={formData.insurance_type}
-                  onChange={(e) => setFormData({ ...formData, insurance_type: e.target.value })}
+                  labelClassName="block text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest group-focus-within:text-green-600 transition-colors"
                 />
               </div>
             )}
@@ -253,9 +293,9 @@ function CreditApplicationForm() {
             {submitting ? (
               <span className="flex items-center justify-center gap-2">
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                Processing Analysis...
+                {t.processing}
               </span>
-            ) : "Generate AI Risk Analysis"}
+            ) : t.submit}
           </button>
         </form>
 
@@ -263,7 +303,7 @@ function CreditApplicationForm() {
            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
            </svg>
-           Your data is processed in real-time by the AgriCredit ML Engine.
+            {t.data_security}
         </p>
       </div>
     </div>

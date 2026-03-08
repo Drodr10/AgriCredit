@@ -2,7 +2,11 @@
 
 import { useUser, RedirectToSignIn } from "@clerk/nextjs";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useVoiceContext } from "../../components/VoiceProvider";
+import { VoiceInput } from "../../components/VoiceInput";
+import { useVoiceAssistant } from "../../hooks/useVoice";
 
 interface Farm {
   id: string;
@@ -17,6 +21,8 @@ export default function Dashboard() {
   const { isLoaded, isSignedIn, user } = useUser();
   const [userData, setUserData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const { lang } = useVoiceContext();
 
   useEffect(() => {
     async function fetchUserData() {
@@ -44,12 +50,51 @@ export default function Dashboard() {
 
   const role = userData?.role;
 
-  if (role === "admin") return <AdminView userData={userData} />;
-  return <FarmerView farms={userData?.farms || []} setUserData={setUserData} clerkId={user.id} />;
+  if (role === "admin") return <AdminView userData={userData} lang={lang} />;
+  return <FarmerView farms={userData?.farms || []} setUserData={setUserData} clerkId={user.id} lang={lang} />;
 }
 
-function FarmerView({ farms, setUserData, clerkId }: { farms: Farm[], setUserData: any, clerkId: string }) {
+function FarmerView({ farms, setUserData, clerkId, lang }: { farms: Farm[], setUserData: any, clerkId: string, lang: string }) {
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const { speak } = useVoiceAssistant(lang);
+
+  const t = {
+    hi: {
+      portfolio: "किसान पोर्टफोलियो",
+      monitoring: "सक्रिय कृषि प्रोफाइल की निगरानी",
+      all_reports: "सभी रिपोर्ट",
+      apply: "क्रेडिट के लिए आवेदन करें",
+      add_farm: "नया खेत जोड़ें",
+      verified: "सत्यापित प्रोफाइल",
+      view_reports: "रिपोर्ट देखें"
+    },
+    pa: {
+      portfolio: "ਕਿਸਾਨ ਪੋਰਟਫੋਲੀਓ",
+      monitoring: "ਸਰਗਰਮ ਫਾਰਮ ਪ੍ਰੋਫਾਈਲਾਂ ਦੀ ਨਿਗਰਾਨੀ",
+      all_reports: "ਸਾਰੀਆਂ ਰਿਪੋਰਟਾਂ",
+      apply: "ਕ੍ਰੈਡਿਟ ਲਈ ਅਪਲਾਈ ਕਰੋ",
+      add_farm: "ਨਵਾਂ ਫਾਰਮ ਜੋੜੋ",
+      verified: "ਪ੍ਰਮਾਣਿਤ ਪ੍ਰੋਫਾਈਲ",
+      view_reports: "ਰਿਪੋਰਟਾਂ ਦੇਖੋ"
+    },
+    en: {
+      portfolio: "Farmer Portfolio",
+      monitoring: `Monitoring ${farms.length} active farm profiles`,
+      all_reports: "ALL REPORTS",
+      apply: "APPLY FOR CREDIT",
+      add_farm: "ADD NEW FARM",
+      verified: "Verified Profile",
+      view_reports: "VIEW REPORTS"
+    }
+  }[lang as 'hi' | 'pa' | 'en'] || {
+    portfolio: "Farmer Portfolio",
+    monitoring: `Monitoring ${farms.length} active farm profiles`,
+    all_reports: "ALL REPORTS",
+    apply: "APPLY FOR CREDIT",
+    add_farm: "ADD NEW FARM",
+    verified: "Verified Profile",
+    view_reports: "VIEW REPORTS"
+  };
 
   const handleDeleteFarm = async (farmId: string, farmName: string) => {
     if (!window.confirm(`Are you sure you want to delete ${farmName}? This will also delete ALL credit reports permanently.`)) {
@@ -80,9 +125,9 @@ function FarmerView({ farms, setUserData, clerkId }: { farms: Farm[], setUserDat
         <header className="flex justify-between items-end mb-12 border-b border-gray-100 pb-8">
           <div>
             <h1 className="text-4xl font-black tracking-tighter mb-2 uppercase bg-gradient-to-r from-[#1a4a2e] to-[#d4a017] bg-clip-text text-transparent">
-              Farmer <span className="italic">Portfolio</span>
+              {t.portfolio.split(' ')[0]} <span className="italic">{t.portfolio.split(' ')[1] || ""}</span>
             </h1>
-            <p className="text-slate-400 font-medium font-mono uppercase tracking-[0.2em]">Monitoring {farms.length} active farm profiles</p>
+            <p className="text-slate-400 font-medium font-mono uppercase tracking-[0.2em]">{t.monitoring}</p>
           </div>
           <div className="flex items-center gap-3">
             {farms.length > 0 && (
@@ -90,32 +135,36 @@ function FarmerView({ farms, setUserData, clerkId }: { farms: Farm[], setUserDat
                 <Link 
                   href="/reports" 
                   className="group flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-900 font-black px-6 py-3 rounded-xl transition-all border border-gray-200 shadow-sm hover:-translate-y-1"
+                  onMouseEnter={() => speak("All Reports", "account")}
                 >
                   <svg className="w-5 h-5 text-green-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  ALL REPORTS
+                  {t.all_reports}
                 </Link>
                 <Link 
                   href="/apply" 
                   className="group flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-900 font-black px-6 py-3 rounded-xl transition-all border border-gray-200 shadow-sm hover:-translate-y-1"
+                  onMouseEnter={() => speak("Apply for Credit", "inputs")}
                 >
                   <svg className="w-5 h-5 text-green-800" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                   </svg>
-                  APPLY FOR CREDIT
+                  {t.apply}
                 </Link>
               </>
             )}
 
+
             <Link 
               href="/farm" 
               className="group flex items-center gap-2 bg-green-800 hover:bg-green-700 text-white font-black px-6 py-3 rounded-xl transition-all hover:-translate-y-1 shadow-xl shadow-green-800/20"
+              onMouseEnter={() => speak("Add New Farm", "account")}
             >
               <svg className="w-5 h-5 transition-transform group-hover:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 4v16m8-8H4" />
               </svg>
-              ADD NEW FARM
+              {t.add_farm}
             </Link>
           </div>
         </header>
@@ -173,20 +222,22 @@ function FarmerView({ farms, setUserData, clerkId }: { farms: Farm[], setUserDat
 
                 <div className="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between">
                    <div className="flex items-center gap-4">
-                     <Link 
-                       href={`/apply?farmId=${farm.id}`}
-                       className="text-xs font-black text-slate-900 hover:text-green-800 transition-colors uppercase flex items-center gap-1"
-                     >
-                       APPLY FOR CREDIT
-                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
-                       </svg>
-                     </Link>
+                        <Link 
+                          href={`/apply?farmId=${farm.id}`}
+                          className="text-xs font-black text-slate-900 hover:text-green-800 transition-colors uppercase flex items-center gap-1"
+                          onMouseEnter={() => speak("Apply for Credit", "inputs")}
+                        >
+                          {t.apply}
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                          </svg>
+                        </Link>
                      <Link 
                        href={`/report/${farm.id}`}
                        className="text-xs font-black text-slate-400 hover:text-green-800 transition-colors uppercase flex items-center gap-1"
+                       onMouseEnter={() => speak("View Reports", "account")}
                      >
-                       VIEW REPORTS
+                       {t.view_reports}
                      </Link>
                    </div>
                    <div className="flex items-center gap-2">
@@ -221,7 +272,7 @@ function FarmerView({ farms, setUserData, clerkId }: { farms: Farm[], setUserDat
   );
 }
 
-function AdminView({ userData }: { userData: any }) {
+function AdminView({ userData, lang }: { userData: any, lang: string }) {
   return (
     <div className="min-h-screen bg-gradient-to-b from-gray-50 to-white text-slate-900 p-8 sm:p-12 font-sans relative">
       <div className="max-w-7xl mx-auto">

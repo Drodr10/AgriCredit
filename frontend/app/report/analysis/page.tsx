@@ -3,6 +3,8 @@
 import React, { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { useVoiceContext } from "../../../components/VoiceProvider";
+import { useVoiceAssistant } from "../../../hooks/useVoice";
 
 export default function AnalysisReport() {
   return (
@@ -22,6 +24,9 @@ function AnalysisContent() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
+  const { lang, isVoiceEnabled } = useVoiceContext();
+  const { speak } = useVoiceAssistant(lang);
+  const [hasSpokenIntro, setHasSpokenIntro] = useState(false);
 
   useEffect(() => {
     if (id) {
@@ -30,13 +35,18 @@ function AnalysisContent() {
         .then(data => {
           setData(data);
           setLoading(false);
+          // Narrate intro once data is loaded
+          if (!hasSpokenIntro && isVoiceEnabled) {
+            speak("Lender Report", "results");
+            setHasSpokenIntro(true);
+          }
         })
         .catch(err => {
           console.error("Failed to fetch application:", err);
           setLoading(false);
         });
     }
-  }, [id]);
+  }, [id, hasSpokenIntro, isVoiceEnabled, speak]);
 
   const handleGeneratePDF = async () => {
     if (!id || generating) return;
@@ -150,7 +160,37 @@ function AnalysisContent() {
   const featureImportance = data.feature_importance || [];
   const modelComp = data.model_comparison || {};
 
-  const today = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  const today = new Date().toLocaleDateString(lang === 'hi' ? 'hi-IN' : lang === 'pa' ? 'pa-IN' : 'en-US', { year: "numeric", month: "long", day: "numeric" });
+
+  const t = {
+    hi: {
+      lender_report: "ऋणदाता रिपोर्ट",
+      farmer_summary: "किसान सारांश",
+      ai_pdf: "एआई रिपोर्ट पीडीएफ",
+      generating: "बन रहा है...",
+      listen: "सुनें"
+    },
+    pa: {
+      lender_report: "ਲੈਂਡਰ ਰਿਪੋਰਟ",
+      farmer_summary: "ਕਿਸਾਨ ਸਾਰ",
+      ai_pdf: "AI ਰਿਪੋਰਟ PDF",
+      generating: "ਬਣ ਰਿਹਾ ਹੈ...",
+      listen: "ਸੁਣੋ"
+    },
+    en: {
+      lender_report: "Lender Report",
+      farmer_summary: "Farmer Summary",
+      ai_pdf: "AI Report PDF",
+      generating: "Generating...",
+      listen: "Listen"
+    }
+  }[lang as 'hi' | 'pa' | 'en'] || {
+    lender_report: "Lender Report",
+    farmer_summary: "Farmer Summary",
+    ai_pdf: "AI Report PDF",
+    generating: "Generating...",
+    listen: "Listen"
+  };
 
   return (
     <main className="min-h-screen bg-slate-100 text-slate-900 p-4 sm:p-8 md:p-12 font-sans selection:bg-green-500/30 report-page">
@@ -162,22 +202,29 @@ function AnalysisContent() {
             <div className="w-10 h-10 bg-green-600 rounded-lg flex items-center justify-center text-white shadow-lg shadow-green-600/20">
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z" /></svg>
             </div>
-            <h1 className="text-xl font-black tracking-tight text-slate-900 uppercase italic">Agricredit <span className="text-green-600">Lender Report</span></h1>
+            <h1 className="text-xl font-black tracking-tight text-slate-900 uppercase italic">Agricredit <span className="text-green-600">{t.lender_report}</span></h1>
+            <button 
+              onClick={() => speak("Lender Report", "results")}
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-700 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-green-100 transition-colors border border-green-200/50"
+            >
+              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77zm-2 0L7 7H3v10h4l5 3.77V3.23z" /></svg>
+              {t.listen}
+            </button>
           </div>
           <div className="flex items-center gap-3 w-full sm:w-auto">
             <Link href={`/report/summary?id=${id}`} className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all shadow-sm cursor-pointer">
-              Farmer Summary
+              {t.farmer_summary}
             </Link>
             <button onClick={handleGeneratePDF} disabled={generating} className={`flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-sm font-semibold transition-all shadow-sm cursor-pointer ${generating ? "bg-green-50 border border-green-200 text-green-600" : "bg-white border border-slate-200 text-slate-600 hover:bg-slate-50"}`}>
               {generating ? (
                 <>
                   <div className="w-4 h-4 mr-2 border-2 border-green-500 border-t-transparent rounded-full animate-spin"></div>
-                  Generating…
+                  {t.generating}
                 </>
               ) : (
                 <>
                   <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                  AI Report PDF
+                  {t.ai_pdf}
                 </>
               )}
             </button>
