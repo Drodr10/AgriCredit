@@ -75,15 +75,15 @@ def list_applications() -> list[Any]:
 def create_application(payload: CreditApplicationCreate) -> Any:
     db = _get_db()
     
-    # 1. Verify farmer exists
-    try:
-        farmer_oid = ObjectId(payload.farmer_id)
-    except InvalidId:
-        raise HTTPException(status_code=400, detail="Invalid farmer ID")
+    # 1. Verify farm exists in user's profile
+    user_doc = db.users.find_one({"clerk_id": payload.clerk_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
     
-    farmer = db.farmers.find_one({"_id": farmer_oid})
-    if not farmer:
-        raise HTTPException(status_code=404, detail="Farmer not found")
+    farms = user_doc.get("farms", [])
+    farm = next((f for f in farms if f.get("id") == payload.farmer_id), None)
+    if not farm:
+        raise HTTPException(status_code=404, detail="Farm not found in user profile")
 
     # 2. Generate AI analysis
     ai_results = _generate_mock_ai_results(payload.amount_requested)

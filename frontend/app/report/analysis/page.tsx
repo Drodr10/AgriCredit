@@ -1,44 +1,79 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
-
-// Mock data representing what the AI model would output
-const REPORT_DATA = {
-  scenarioId: "SC-2026-7834",
-  crop: "Maize",
-  region: "Punjab",
-  season: "Kharif 2026",
-  riskSummary: {
-    tier: "LOW",
-    badSeasonChance: "18%",
-    suggestedRate: "8.0%",
-    expectedLoss: "$400",
-    basis: "For $5,000 loan",
-  },
-  riskDrivers: [
-    { label: "Rainfall anomaly", value: 15 },
-    { label: "Yield variability", value: 22 },
-    { label: "Price volatility", value: 28 },
-    { label: "Extreme events", value: 12 },
-  ],
-  reasoning: [
-    "Rainfall forecast within normal range.",
-    "Historical yield variability is low.",
-    "Price volatility is moderate and trending stable.",
-    "Model confidence: high.",
-  ],
-  metrics: {
-    baselineError: 24,
-    modelError: 15,
-    improvement: "38% lower error than baseline",
-  },
-};
+import { useSearchParams } from "next/navigation";
 
 export default function AnalysisReport() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    }>
+      <AnalysisContent />
+    </Suspense>
+  );
+}
+
+function AnalysisContent() {
+  const searchParams = useSearchParams();
+  const id = searchParams.get("id");
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (id) {
+      fetch(`http://localhost:8000/credit-applications/${id}`)
+        .then(res => res.json())
+        .then(data => {
+          setData(data);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error("Failed to fetch application:", err);
+          setLoading(false);
+        });
+    }
+  }, [id]);
+
   const handlePrint = () => {
     window.print();
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-green-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (!data) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center p-6 text-center">
+        <div>
+          <h1 className="text-2xl font-black uppercase text-slate-900 mb-4">Report Not Found</h1>
+          <Link href="/dashboard" className="text-green-600 font-bold hover:underline">Return to Dashboard</Link>
+        </div>
+      </div>
+    );
+  }
+
+  // Pre-mapping data for cleaner JSX
+  const riskDrivers = [
+    { label: "Rainfall anomaly", value: data.rainfall_anomaly_weight || 0 },
+    { label: "Price volatility", value: data.price_volatility_weight || 0 },
+    { label: "Extreme events", value: data.extreme_events_weight || 0 },
+    { label: "Yield stability", value: data.yield_stability ? 20 : 10 }, // Dummy for now if not in weight schema
+  ];
+
+  const reasoning = [
+    data.rainfall_forecast,
+    data.yield_stability,
+    data.price_volatility,
+    `Model confidence: ${data.model_confidence || "high"}`,
+  ].filter(Boolean);
 
   return (
     <main className="min-h-screen bg-slate-50 text-slate-900 p-4 sm:p-8 md:p-12 font-sans selection:bg-green-500/30 report-page">
@@ -56,6 +91,12 @@ export default function AnalysisReport() {
           </div>
           
           <div className="flex items-center gap-3 w-full sm:w-auto">
+            <Link 
+              href={`/report/summary?id=${id}`}
+              className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
+            >
+              Summary View
+            </Link>
             <button 
               onClick={handlePrint}
               className="flex-1 sm:flex-none inline-flex items-center justify-center px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-all shadow-sm cursor-pointer"
@@ -78,12 +119,12 @@ export default function AnalysisReport() {
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
               <h2 className="text-2xl sm:text-3xl font-black text-slate-900 uppercase tracking-tight pdf-text-black">
-                Lender report – <span className="text-green-600 pdf-text-green">{REPORT_DATA.crop}</span>, {REPORT_DATA.region}, {REPORT_DATA.season}
+                Lender report – <span className="text-green-600 pdf-text-green">{data.crop_type}</span>, {data.region}, {data.season}
               </h2>
             </div>
             <div className="flex items-center gap-3">
               <span className="px-3 py-1 bg-white border border-slate-200 text-slate-500 rounded-md text-[10px] font-black uppercase tracking-[0.2em] pdf-scenario-tag">
-                Scenario ID: {REPORT_DATA.scenarioId}
+                Scenario ID: {data.scenario_id}
               </span>
             </div>
           </div>
@@ -99,25 +140,27 @@ export default function AnalysisReport() {
                 <div className="grid grid-cols-2 gap-y-10 gap-x-4">
                   <div>
                     <p className="text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest pdf-sublabel">Risk tier</p>
-                    <p className={`text-3xl font-black ${REPORT_DATA.riskSummary.tier === 'LOW' ? 'text-green-600 pdf-text-green' : 'text-amber-600 pdf-text-amber'}`}>
-                      {REPORT_DATA.riskSummary.tier}
+                    <p className={`text-3xl font-black ${data.risk_tier === 'LOW' ? 'text-green-600 pdf-text-green' : 'text-amber-600 pdf-text-amber'}`}>
+                      {data.risk_tier}
                     </p>
                   </div>
                   <div>
                     <p className="text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest pdf-sublabel">Chance of bad season</p>
-                    <p className="text-3xl font-black text-slate-900 pdf-text-black">{REPORT_DATA.riskSummary.badSeasonChance}</p>
+                    <p className="text-3xl font-black text-slate-900 pdf-text-black">{data.bad_season_probability}%</p>
                   </div>
                   <div>
                     <p className="text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest pdf-sublabel">Suggested rate</p>
-                    <p className="text-3xl font-black text-slate-900 pdf-text-black">{REPORT_DATA.riskSummary.suggestedRate}</p>
+                    <p className="text-3xl font-black text-slate-900 pdf-text-black">{data.suggested_interest_rate}%</p>
                   </div>
                   <div>
                     <p className="text-[10px] font-black text-slate-400 mb-2 uppercase tracking-widest pdf-sublabel">Expected loss</p>
-                    <p className="text-3xl font-black text-slate-900 pdf-text-black">{REPORT_DATA.riskSummary.expectedLoss}</p>
+                    <p className="text-3xl font-black text-slate-900 pdf-text-black">${data.expected_loss.toLocaleString()}</p>
                   </div>
                 </div>
                 <div className="mt-10 pt-6 border-t border-slate-100 pdf-footer">
-                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none pdf-sublabel">{REPORT_DATA.riskSummary.basis}</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none pdf-sublabel">
+                    For ${data.amount_requested.toLocaleString()} loan
+                  </p>
                 </div>
               </section>
 
@@ -125,7 +168,7 @@ export default function AnalysisReport() {
               <section className="bg-white rounded-[2.5rem] border border-slate-200 p-8 shadow-xl shadow-slate-200/50 pdf-card">
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-8 pdf-label">Reasoning</h3>
                 <ul className="space-y-5">
-                  {REPORT_DATA.reasoning.map((item, i) => (
+                  {reasoning.map((item, i) => (
                     <li key={i} className="flex items-start">
                       <span className="mt-1.5 mr-4 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0 shadow-lg shadow-green-500/50" />
                       <span className="text-slate-600 font-medium leading-relaxed text-sm pdf-body-text">{item}</span>
@@ -143,7 +186,7 @@ export default function AnalysisReport() {
                 <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-4 pdf-label">Risk drivers</h3>
                 
                 <div className="flex items-end justify-between gap-6 px-4 py-4 h-[160px] min-h-[160px]">
-                  {REPORT_DATA.riskDrivers.map((driver, i) => (
+                  {riskDrivers.map((driver, i) => (
                     <div key={i} className="flex-1 flex flex-col items-center gap-3 h-full justify-end">
                       <div className="w-full flex-grow flex items-end relative">
                         <div 
@@ -173,12 +216,12 @@ export default function AnalysisReport() {
                   <div>
                     <div className="flex justify-between mb-3">
                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest pdf-sublabel">Baseline error</span>
-                       <span className="text-xs font-black text-slate-900 pdf-text-black">{REPORT_DATA.metrics.baselineError}%</span>
+                       <span className="text-xs font-black text-slate-900 pdf-text-black">24%</span>
                     </div>
                     <div className="w-full h-4 bg-slate-100 border border-slate-200 rounded-full overflow-hidden pdf-bg-dark">
                        <div 
                          className="h-full bg-slate-400 pdf-bar-baseline" 
-                         style={{ width: `${REPORT_DATA.metrics.baselineError}%` }}
+                         style={{ width: `24%` }}
                        />
                     </div>
                   </div>
@@ -186,12 +229,12 @@ export default function AnalysisReport() {
                   <div>
                     <div className="flex justify-between mb-3">
                        <span className="text-[10px] font-black text-green-600 uppercase tracking-widest pdf-sublabel">Agricredit accuracy</span>
-                       <span className="text-xs font-black text-green-600 pdf-text-green-bright">{REPORT_DATA.metrics.modelError}%</span>
+                       <span className="text-xs font-black text-green-600 pdf-text-green-bright">15%</span>
                     </div>
                     <div className="w-full h-4 bg-slate-100 border border-slate-200 rounded-full overflow-hidden pdf-bg-dark">
                        <div 
                          className="h-full bg-green-500 shadow-[0_0_15px_rgba(34,197,94,0.1)] pdf-bar-model" 
-                         style={{ width: `${REPORT_DATA.metrics.modelError}%` }}
+                         style={{ width: `15%` }}
                        />
                     </div>
                   </div>
@@ -199,7 +242,7 @@ export default function AnalysisReport() {
 
                 <div className="mt-10">
                   <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest italic pdf-sublabel">
-                    {REPORT_DATA.metrics.improvement}
+                    38% lower error than baseline
                   </p>
                 </div>
               </section>

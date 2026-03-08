@@ -85,10 +85,9 @@ function FarmerView({ farms }: { farms: Farm[] }) {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {farms.map((farm) => (
-              <Link 
+              <div 
                 key={farm.id} 
-                href={`/report?id=${farm.id}`}
-                className="group relative bg-slate-900/50 rounded-[2.5rem] border-2 border-slate-800 p-8 hover:border-green-500 transition-all hover:bg-slate-900 shadow-2xl overflow-hidden"
+                className="group relative bg-slate-900/50 rounded-[2.5rem] border-2 border-slate-800 p-8 hover:border-green-500 transition-all hover:bg-slate-900 shadow-2xl overflow-hidden flex flex-col"
               >
                 <div className="absolute top-0 right-0 p-8 opacity-5 transition-opacity group-hover:opacity-10 translate-x-4 -translate-y-4">
                    <svg className="w-32 h-32" fill="currentColor" viewBox="0 0 20 20">
@@ -105,8 +104,10 @@ function FarmerView({ farms }: { farms: Farm[] }) {
                   <span className="text-[10px] font-black uppercase tracking-widest bg-slate-950 px-3 py-1 rounded-full border border-slate-800">Verified Profile</span>
                 </div>
 
-                <h3 className="text-2xl font-black mb-1 group-hover:text-green-400 transition-colors uppercase tracking-tight">{farm.name}</h3>
-                <p className="text-slate-500 text-sm font-bold uppercase tracking-widest mb-6">{farm.location}</p>
+                <Link href={`/report?id=${farm.id}`} className="block group/title">
+                  <h3 className="text-2xl font-black mb-1 group-hover/title:text-green-400 transition-colors uppercase tracking-tight">{farm.name}</h3>
+                  <p className="text-slate-500 text-sm font-bold uppercase tracking-widest mb-6">{farm.location}</p>
+                </Link>
 
                 <div className="grid grid-cols-2 gap-4 mt-auto">
                    <div className="bg-slate-950/50 p-4 rounded-2xl border border-slate-800/50">
@@ -120,12 +121,25 @@ function FarmerView({ farms }: { farms: Farm[] }) {
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-slate-800/50 flex items-center justify-between">
-                   <span className="text-xs font-black text-green-500 uppercase">AI Score: 92/100</span>
-                   <svg className="w-5 h-5 text-slate-700 group-hover:text-green-500 transition-all group-hover:translate-x-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                   </svg>
+                   <div className="flex flex-col">
+                     <span className="text-[10px] font-black text-green-500 uppercase tracking-widest">AI Score: 92/100</span>
+                     <Link 
+                       href={`/apply?farmId=${farm.id}`}
+                       className="text-xs font-black text-white hover:text-green-400 transition-colors uppercase mt-1 flex items-center gap-1"
+                     >
+                       APPLY FOR CREDIT
+                       <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" />
+                       </svg>
+                     </Link>
+                   </div>
+                   <Link href={`/report?id=${farm.id}`} className="text-slate-700 group-hover:text-green-500 transition-all group-hover:translate-x-1">
+                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                      </svg>
+                   </Link>
                 </div>
-              </Link>
+              </div>
             ))}
           </div>
         )}
