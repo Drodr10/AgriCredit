@@ -6,15 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.core.database import close_client
-from app.ml.model import load_models
 from app.routers import credit_applications, farmers, users
 from app.routers.ml import analyze
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
-    # AgricreditModel is actually imported in ml/analyze.py in real run. This pre-loads if needed.
-    load_models()
     yield
     await close_client()
 
