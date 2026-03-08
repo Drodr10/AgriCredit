@@ -15,7 +15,7 @@ const LocationMap = dynamic(() => import("../components/LocationMap"), {
 
 export default function MapPage() {
   const [coordinates, setCoordinates] = useState("");
-  const [hectares, setHectares] = useState(1);
+  const [hectares, setHectares] = useState(5);
 
   return (
     <LocationMap
