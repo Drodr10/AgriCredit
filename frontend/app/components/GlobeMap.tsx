@@ -94,7 +94,7 @@ export default function GlobeMap() {
         },
         filled: true,
         stroked: false,
-        getFillColor: [15, 23, 42, 255],
+        getFillColor: [240, 249, 255, 255],
         pickable: false,
       }),
       // World country outlines
@@ -106,8 +106,8 @@ export default function GlobeMap() {
               filled: true,
               stroked: true,
               pickable: false,
-              getFillColor: [30, 41, 59, 200],
-              getLineColor: [100, 116, 139, 100],
+              getFillColor: [243, 244, 246, 255],
+              getLineColor: [209, 213, 219, 255],
               getLineWidth: 600,
               lineWidthMinPixels: 0.5,
               lineWidthMaxPixels: 1.5,
@@ -167,10 +167,10 @@ export default function GlobeMap() {
 
   // Get SPEI severity color for the info panel
   const getSeverityColorCSS = (spei: number): string => {
-    if (spei <= -1.5) return '#e53e14';
+    if (spei <= -1.5) return '#9a3412';
     if (spei <= -0.5) return '#f59e28';
-    if (spei <= 0.5) return '#78be50';
-    return '#3b82f6';
+    if (spei <= 0.5) return '#d6d3d1';
+    return '#166534';
   };
 
   return (
@@ -197,10 +197,10 @@ export default function GlobeMap() {
               className="tooltip-value"
               style={{
                 color: hoverInfo.spei < -0.5
-                  ? '#f59e28'
+                  ? '#b45309'
                   : hoverInfo.spei > 0.5
-                    ? '#3b82f6'
-                    : '#78be50',
+                    ? '#166534'
+                    : '#78716c',
               }}
             >
               {hoverInfo.spei.toFixed(2)}
