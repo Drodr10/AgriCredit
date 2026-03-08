@@ -1,4 +1,3 @@
-import random
 import uuid
 from datetime import datetime, timezone
 from typing import Any
@@ -16,41 +15,68 @@ from app.models.schemas import (
     CreditApplicationUpdate,
     doc_to_dict,
 )
+from app.ml.model import AgricreditModel
+
 router = APIRouter(prefix="/credit-applications", tags=["credit_applications"])
+
+# Instantiate model once at module level
+_model = AgricreditModel()
 
 
 def _get_db() -> Database:  # type: ignore[type-arg]
     return get_database()
 
 
-def _generate_mock_ai_results(amount: float) -> dict[str, Any]:
-    """Generates Figma-inspired mock AI analysis data."""
-    risk_tiers = ["LOW", "MEDIUM", "HIGH"]
-    weights = [0.7, 0.2, 0.1]
-    tier = random.choices(risk_tiers, weights=weights)[0]
-    
-    prob = random.uniform(5, 25) if tier == "LOW" else random.uniform(26, 60) if tier == "MEDIUM" else random.uniform(61, 95)
-    rate = 8.0 if tier == "LOW" else 12.5 if tier == "MEDIUM" else 18.0
-    
-    bad_season_probability = prob
-    expected_loss = float(amount) * (prob / 100)
+def _run_ai_analysis(payload: CreditApplicationCreate, farm: dict) -> dict[str, Any]:
+    """Run the real AgricreditModel and map outputs to DB schema fields."""
+    # Map tenure_years to experience level
+    tenure = farm.get("tenure_years", 0) or 0
+    if tenure >= 5:
+        experience = "experienced"
+    elif tenure >= 2:
+        experience = "intermediate"
+    else:
+        experience = "beginner"
+
+    farm_data = {
+        "district": "Ludhiana",  # Demo: hardcoded to Ludhiana
+        "crop": payload.crop_type.lower(),
+        "season": payload.season.lower(),
+        "farm_size_ha": farm.get("farm_size_hectares", 1.0) or 1.0,
+        "irrigation": (farm.get("irrigation_type") or "mixed").lower(),
+        "experience": experience,
+        "loan_amount": payload.amount_requested,
+    }
+
+    result = _model.predict_risk(farm_data)
+
+    # Extract feature importance weights for the top risk drivers
+    importance = result.get("feature_importance", [])
+    rainfall_w = next((f["weight"] for f in importance if "Rainfall" in f["name"] or "SPEI" in f["name"]), 0.25)
+    price_w = next((f["weight"] for f in importance if "Price" in f["name"]), 0.15)
+    extreme_w = next((f["weight"] for f in importance if "Yield" in f["name"]), 0.10)
+
+    # Extract farmer_summary list
+    summary = result.get("farmer_summary", [])
+    model_comp = result.get("model_comparison", {})
+
     scenario_id_str = str(uuid.uuid4().hex)[:4].upper()
 
     return {
-        "risk_tier": tier,
-        "bad_season_probability": round(bad_season_probability, 1),
-        "suggested_interest_rate": rate,
-        "expected_loss": round(expected_loss, 2),
+        "risk_tier": result["risk_tier"],
+        "bad_season_probability": round(result["pd"] * 100, 1),
+        "suggested_interest_rate": round(result["suggested_rate"] * 100, 1),
+        "expected_loss": round(result["expected_loss"], 2),
         "scenario_id": f"SC-{datetime.now().year}-{scenario_id_str}",
-        
-        "rainfall_forecast": "Rainfall forecast within normal range." if tier == "LOW" else "Slightly below average rainfall expected.",
-        "yield_stability": "Historical yield variability is low." if tier == "LOW" else "Moderate yield fluctuations in recent years.",
-        "price_volatility": "Price volatility is moderate and trending stable." if tier == "LOW" else "High market price sensitivity detected.",
-        "model_confidence": "high" if tier == "LOW" else "medium",
-        
-        "rainfall_anomaly_weight": 25.0,
-        "price_volatility_weight": 15.0,
-        "extreme_events_weight": 10.0
+
+        "rainfall_forecast": summary[0] if len(summary) > 0 else "Rainfall data unavailable.",
+        "yield_stability": summary[1] if len(summary) > 1 else "Yield data unavailable.",
+        "price_volatility": summary[2] if len(summary) > 2 else "Price data unavailable.",
+        "model_confidence": model_comp.get("model", "unknown"),
+
+        "rainfall_anomaly_weight": round(rainfall_w * 100, 1),
+        "price_volatility_weight": round(price_w * 100, 1),
+        "extreme_events_weight": round(extreme_w * 100, 1),
     }
 
 
@@ -85,8 +111,11 @@ def create_application(payload: CreditApplicationCreate) -> Any:
     if not farm:
         raise HTTPException(status_code=404, detail="Farm not found in user profile")
 
-    # 2. Generate AI analysis
-    ai_results = _generate_mock_ai_results(payload.amount_requested)
+    # 2. Run real AI analysis
+    try:
+        ai_results = _run_ai_analysis(payload, farm)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"AI analysis failed: {str(e)}")
     
     # 3. Save application
     now = datetime.now(timezone.utc)

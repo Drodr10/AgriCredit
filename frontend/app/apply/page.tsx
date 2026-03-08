@@ -151,27 +151,31 @@ function CreditApplicationForm() {
             {/* Season */}
             <div className="group">
               <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-600 transition-colors">Season</label>
-              <input 
+              <select 
                 required
-                type="text" 
-                placeholder="e.g. Kharif 2026"
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-500 focus:bg-white outline-none transition-all"
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-500 focus:bg-white outline-none transition-all appearance-none cursor-pointer"
                 value={formData.season}
                 onChange={(e) => setFormData({ ...formData, season: e.target.value })}
-              />
+              >
+                <option value="" disabled>Select season...</option>
+                <option value="kharif">Kharif (Jul – Oct)</option>
+                <option value="rabi">Rabi (Nov – Mar)</option>
+              </select>
             </div>
 
             {/* Primary Crop */}
             <div className="group">
               <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-600 transition-colors">Primary Crop</label>
-              <input 
+              <select 
                 required
-                type="text" 
-                placeholder="e.g. Maize"
-                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-500 focus:bg-white outline-none transition-all"
+                className="w-full bg-slate-50 border border-slate-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-500 focus:bg-white outline-none transition-all appearance-none cursor-pointer"
                 value={formData.crop_type}
                 onChange={(e) => setFormData({ ...formData, crop_type: e.target.value })}
-              />
+              >
+                <option value="" disabled>Select crop...</option>
+                <option value="rice">Rice</option>
+                <option value="wheat">Wheat</option>
+              </select>
             </div>
           </div>
 
