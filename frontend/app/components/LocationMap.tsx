@@ -16,6 +16,7 @@ interface LocationMapProps {
   location?: string;
   farmSizeHectares?: number;
   farmCircleColor?: string;
+  farmName?: string;
   onCoordinatesChange: (coords: string) => void;
   onLocationChange?: (location: string) => void;
   children?: React.ReactNode;
@@ -45,7 +46,7 @@ interface HoverInfo {
   category: string;
 }
 
-export default function LocationMap({ coordinates, location, farmSizeHectares, farmCircleColor, onCoordinatesChange, onLocationChange, children }: LocationMapProps) {
+export default function LocationMap({ coordinates, location, farmSizeHectares, farmCircleColor, farmName, onCoordinatesChange, onLocationChange, children }: LocationMapProps) {
   const [position, setPosition] = useState<{lat: number; lng: number} | null>(null);
   const [geoData, setGeoData] = useState<GeoJSON.FeatureCollection | null>(null);
   const [hoverInfo, setHoverInfo] = useState<HoverInfo | null>(null);
@@ -380,6 +381,26 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, f
             </Source>
           );
         })()}
+
+        {/* Farm name label inside circle */}
+        {position && farmName && farmSizeHectares && farmSizeHectares > 0 && (
+          <Marker longitude={position.lng} latitude={position.lat} anchor="center">
+            <div style={{
+              pointerEvents: "none",
+              textAlign: "center",
+              color: farmCircleColor || "#166534",
+              fontWeight: 900,
+              fontSize: 13,
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              textShadow: "0 1px 4px rgba(255,255,255,0.9), 0 0px 2px rgba(255,255,255,1)",
+              whiteSpace: "nowrap",
+              marginTop: 24,
+            }}>
+              {farmName}
+            </div>
+          </Marker>
+        )}
 
         {position && (
           <Marker longitude={position.lng} latitude={position.lat} anchor="bottom">

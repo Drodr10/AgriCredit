@@ -94,6 +94,7 @@ export default function OnboardingFlow() {
       location={formData.location}
       farmSizeHectares={formData.farm_size_hectares}
       farmCircleColor={SOIL_COLORS[formData.soil_category] || undefined}
+      farmName={formData.name || undefined}
       onCoordinatesChange={(coords: string) => setFormData({ ...formData, gps_coordinates: coords })}
       onLocationChange={(location: string) => setFormData((prev) => ({ ...prev, location }))}
     >
@@ -155,8 +156,28 @@ export default function OnboardingFlow() {
             </div>
           )}
 
-          {/* ──── Step 2: Soil Composition ──── */}
+          {/* ──── Step 2: Regional Context ──── */}
           {step === 2 && (
+            <div>
+              <h1 className="text-2xl font-black tracking-tighter text-slate-900 mb-1">Regional Context</h1>
+              <p className="text-slate-400 text-sm font-medium mb-6">
+                Pin your location on the map and set your farm scale.
+              </p>
+              <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">
+                State & District
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Punjab, Bathinda"
+                className="w-full bg-white/80 border border-gray-200 rounded-xl px-5 py-3 text-lg font-bold focus:border-green-800 focus:ring-4 focus:ring-green-50 outline-none transition-all placeholder:text-slate-200 text-slate-900 shadow-sm"
+                value={formData.location}
+                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+              />
+            </div>
+          )}
+
+          {/* ──── Step 3: Soil Composition ──── */}
+          {step === 3 && (
             <div>
               <h1 className="text-2xl font-black tracking-tighter text-slate-900 mb-1">Soil Composition</h1>
               <p className="text-slate-400 text-sm font-medium mb-6">
@@ -192,26 +213,6 @@ export default function OnboardingFlow() {
                   </button>
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* ──── Step 3: Regional Context ──── */}
-          {step === 3 && (
-            <div>
-              <h1 className="text-2xl font-black tracking-tighter text-slate-900 mb-1">Regional Context</h1>
-              <p className="text-slate-400 text-sm font-medium mb-6">
-                Pin your location on the map and set your farm scale.
-              </p>
-              <label className="block text-[10px] font-bold text-slate-400 mb-2 uppercase tracking-widest">
-                State & District
-              </label>
-              <input
-                type="text"
-                placeholder="e.g. Punjab, Bathinda"
-                className="w-full bg-white/80 border border-gray-200 rounded-xl px-5 py-3 text-lg font-bold focus:border-green-800 focus:ring-4 focus:ring-green-50 outline-none transition-all placeholder:text-slate-200 text-slate-900 shadow-sm"
-                value={formData.location}
-                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-              />
             </div>
           )}
 
@@ -330,8 +331,8 @@ export default function OnboardingFlow() {
         </div>
       </div>
 
-      {/* ─── Bottom-center panel: Farm Scale (step 3 only) ─── */}
-      {step === 3 && (
+      {/* ─── Bottom-center panel: Farm Scale (step 2 only) ─── */}
+      {step === 2 && (
         <div style={{
           position: "absolute",
           bottom: 24,
