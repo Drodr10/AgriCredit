@@ -166,8 +166,8 @@ export default function Home() {
                 desc: "Every risk score includes a plain-language breakdown of contributing factors, so farmers and lenders both understand the reasoning.",
               },
               {
-                title: "Helps lenders make smarter decisions",
-                desc: "Banks and NBFCs get data-driven risk profiles, reducing NPAs and enabling confident agricultural lending at scale.",
+                title: "Unlock better loan terms",
+                desc: "Equip yourself with the same data-driven risk profiles used by financial institutions to negotiate confidently for lower rates and fairer loans.",
               },
             ].map((b) => (
               <Reveal key={b.title}>
@@ -181,21 +181,21 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ═══════════════ BUILT FOR FARMERS & LENDERS ═══════════════ */}
+      {/* ═══════════════ BUILT FOR FARMERS ═══════════════ */}
       <section className="py-20 lg:py-24 border-t border-gray-100">
         <div className="max-w-5xl mx-auto px-6 lg:px-10">
           <Reveal>
             <p className="text-sm font-semibold uppercase tracking-widest text-green-800 mb-2">Platform</p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Built for Farmers & Lenders</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Built for Farmers</h2>
             <p className="text-base text-gray-500 max-w-xl mb-16">
-              One platform that bridges the trust gap between those who grow and those who fund.
+              Empowering farmers with data-driven insights to manage risks and secure better financial futures.
             </p>
           </Reveal>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             <Reveal>
               <div className="border border-green-200 bg-green-50/50 rounded p-6 h-full">
-                <h3 className="text-lg font-bold text-gray-900 mb-6">For Farmers</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-6">Risk Assessment</h3>
                 <ul className="space-y-4">
                   {[
                     "Understand seasonal risks before you plant",
@@ -213,12 +213,12 @@ export default function Home() {
 
             <Reveal>
               <div className="border border-gray-200 bg-white rounded p-6 h-full">
-                <h3 className="text-lg font-bold text-gray-900 mb-6">For Lenders</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-6">Farm Management</h3>
                 <ul className="space-y-4">
                   {[
-                    "Better agricultural risk evaluation backed by real data",
-                    "Data-driven underwriting to reduce NPAs on farm loans",
-                    "Portfolio risk insights across districts and seasons",
+                    "Track your farm's productivity potential across seasons",
+                    "Build a robust digital footprint for institutional lenders",
+                    "Gain insights based on historical and predictive modeling",
                   ].map((t) => (
                     <li key={t} className="flex items-start gap-3">
                       <IconCheck />
@@ -239,7 +239,7 @@ export default function Home() {
             <p className="text-sm font-semibold uppercase tracking-widest text-green-800 mb-2">Analytics</p>
             <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Quantitative Risk Analysis</h2>
             <p className="text-base text-gray-500 max-w-xl mb-16">
-              Data-driven insights that give lenders the confidence to underwrite agricultural loans at scale.
+              Data-driven insights that give you the confidence to manage agricultural risks at scale.
             </p>
           </Reveal>
 
@@ -299,7 +299,7 @@ export default function Home() {
               Create your farm profile in under two minutes and receive an AI-powered risk report that could help you access better loan terms.
             </p>
             <Link
-              href="/role"
+              href="/dashboard"
               className="inline-flex items-center gap-2 rounded bg-green-800 px-8 py-3 text-base font-semibold text-white hover:bg-green-700 transition-colors"
             >
               Get Started
@@ -332,10 +332,9 @@ export default function Home() {
             <div>
               <p className="text-xs font-semibold text-gray-900 uppercase tracking-wider mb-4">Product</p>
               <ul className="space-y-2">
-                <li><Link href="/role" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Get Started</Link></li>
+                <li><Link href="/dashboard" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Get Started</Link></li>
                 <li><Link href="/map" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Map</Link></li>
                 <li><Link href="/farm" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Farm Profile</Link></li>
-                <li><Link href="/lender" className="text-sm text-gray-500 hover:text-gray-900 transition-colors">Lender Dashboard</Link></li>
               </ul>
             </div>
 

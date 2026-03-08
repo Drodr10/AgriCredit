@@ -32,6 +32,7 @@ def get_current_user(clerk_id: str, email: str | None = None):
         user_in_db = UserInDB(
             clerk_id=clerk_id, 
             email=email or "pending@user.com",
+            role="farmer",
             created_at=now,
             updated_at=now
         )
@@ -45,9 +46,9 @@ def get_current_user(clerk_id: str, email: str | None = None):
     
     d = doc_to_dict(user_doc)
     d["id"] = d.pop("_id", "")
-    # Ensure role is explicitly None if missing
-    if "role" not in d:
-        d["role"] = None
+    # Ensure role is explicitly farmer if missing for existing users
+    if not d.get("role"):
+        d["role"] = "farmer"
     return d
 
 @router.post("/", response_model=User, status_code=status.HTTP_201_CREATED)
