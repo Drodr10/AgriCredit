@@ -43,6 +43,9 @@ export default function RootLayout({
               <a href="/dashboard" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
                 Dashboard
               </a>
+              <a href="/profile" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
+                Profile
+              </a>
               <a href="/reports" className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors">
                 Reports
               </a>

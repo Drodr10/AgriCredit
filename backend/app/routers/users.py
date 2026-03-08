@@ -13,6 +13,7 @@ from app.models.schemas import (
     Farmer,
     FarmerCreate,
     UserRoleUpdate,
+    UserProfileUpdate,
     doc_to_dict,
 )
 
@@ -134,6 +135,35 @@ def update_user_role(clerk_id: str, payload: UserRoleUpdate):
     return d
 
 
+@router.patch("/me/profile", response_model=User)
+def update_user_profile(clerk_id: str, payload: UserProfileUpdate):
+    db = _get_db()
+    user_doc = db.users.find_one({"clerk_id": clerk_id})
+    if not user_doc:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    now = datetime.now(timezone.utc)
+    update_fields: dict[str, Any] = {"updated_at": now}
+
+    for key, value in payload.model_dump().items():
+        if value is not None:
+            # Convert date objects to datetime for MongoDB
+            if hasattr(value, 'isoformat') and not isinstance(value, datetime):
+                update_fields[key] = datetime.combine(value, datetime.min.time())
+            else:
+                update_fields[key] = value
+
+    if len(update_fields) <= 1:
+        raise HTTPException(status_code=400, detail="No valid fields to update")
+
+    db.users.update_one({"clerk_id": clerk_id}, {"$set": update_fields})
+
+    updated = db.users.find_one({"clerk_id": clerk_id})
+    d = doc_to_dict(updated)
+    d["id"] = d.pop("_id", "")
+    return d
+
+
 @router.patch("/me/farms/{farm_id}", response_model=Farmer)
 def update_farm(clerk_id: str, farm_id: str, payload: dict = Body(...)):
     db = _get_db()
@@ -148,7 +178,7 @@ def update_farm(clerk_id: str, farm_id: str, payload: dict = Body(...)):
     
     now = datetime.now(timezone.utc)
     allowed_fields = {"name", "location", "gps_coordinates", "farm_size_hectares", "soil_category",
-                      "irrigation_type", "machinery_type", "tenure_years", "national_id"}
+                      "irrigation_type", "machinery_type"}
     
     update_ops: dict[str, Any] = {f"farms.{farm_index}.updated_at": now}
     for key, value in payload.items():

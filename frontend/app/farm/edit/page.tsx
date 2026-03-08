@@ -57,13 +57,11 @@ function EditFarmContent() {
   const [saving, setSaving] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
-    tenure_years: 0,
     location: "",
     soil_category: "",
     irrigation_type: "",
     machinery_type: "",
     farm_size_hectares: 1,
-    national_id: "",
     gps_coordinates: "",
   });
 
@@ -84,13 +82,11 @@ function EditFarmContent() {
         if (farm) {
           setFormData({
             name: farm.name || "",
-            tenure_years: farm.tenure_years || 0,
             location: farm.location || "",
             soil_category: farm.soil_category || "",
             irrigation_type: farm.irrigation_type || "",
             machinery_type: farm.machinery_type || "",
             farm_size_hectares: farm.farm_size_hectares || 1,
-            national_id: farm.national_id || "",
             gps_coordinates: farm.gps_coordinates || "",
           });
         }
@@ -149,9 +145,8 @@ function EditFarmContent() {
 
         <div className="space-y-8 bg-white p-8 sm:p-10 rounded-[2.5rem] border border-gray-200 shadow-xl shadow-slate-200/50">
           
-          {/* Name & Tenure */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div className="group">
+          {/* Name */}
+          <div className="group">
               <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-800 transition-colors">Farm Name</label>
               <input
                 type="text"
@@ -159,17 +154,6 @@ function EditFarmContent() {
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               />
-            </div>
-            <div className="group">
-              <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest group-focus-within:text-green-800 transition-colors">Years Operating</label>
-              <input
-                type="number"
-                min="0"
-                className="w-full bg-slate-50 border border-gray-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-800 focus:bg-white outline-none transition-all text-slate-900"
-                value={formData.tenure_years}
-                onChange={(e) => setFormData({ ...formData, tenure_years: parseInt(e.target.value) || 0 })}
-              />
-            </div>
           </div>
 
           {/* Location & Map */}
@@ -246,18 +230,6 @@ function EditFarmContent() {
                 {MACHINERY_TYPES.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
               </select>
             </div>
-          </div>
-
-          {/* National ID */}
-          <div className="group">
-            <label className="block text-xs font-black text-slate-400 mb-3 uppercase tracking-widest">Aadhaar Number</label>
-            <input
-              type="text"
-              placeholder="XXXX - XXXX - XXXX"
-              className="w-full bg-slate-50 border border-gray-200 rounded-2xl px-6 py-4 text-lg font-bold focus:border-green-800 focus:bg-white outline-none transition-all text-slate-900 tracking-widest"
-              value={formData.national_id}
-              onChange={(e) => setFormData({ ...formData, national_id: e.target.value })}
-            />
           </div>
 
           {/* Actions */}

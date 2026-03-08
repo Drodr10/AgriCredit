@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from typing import Annotated, Any
 
 from bson import ObjectId
@@ -79,10 +79,19 @@ class UserBase(BaseModel):
     clerk_id: str = Field(..., max_length=100)
     phone: str | None = Field(default=None, max_length=20)
     role: str | None = Field(default=None, max_length=50)
+    birthday: date | None = Field(default=None)
+    national_id: str | None = Field(default=None, max_length=50)
+    experience_years: int | None = Field(default=None, ge=0)
 
 class UserRoleUpdate(BaseModel):
     role: str = Field(..., max_length=50)
     email: str | None = Field(default=None, max_length=255)
+
+class UserProfileUpdate(BaseModel):
+    experience_years: int | None = Field(default=None, ge=0)
+    birthday: date | None = Field(default=None)
+    phone: str | None = Field(default=None, max_length=20)
+    national_id: str | None = Field(default=None, max_length=50)
 
 class UserCreate(UserBase):
     pass

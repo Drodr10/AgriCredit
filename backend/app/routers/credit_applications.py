@@ -27,13 +27,13 @@ def _get_db() -> Database:  # type: ignore[type-arg]
     return get_database()
 
 
-def _run_ai_analysis(payload: CreditApplicationCreate, farm: dict) -> dict[str, Any]:
+def _run_ai_analysis(payload: CreditApplicationCreate, farm: dict, user_doc: dict) -> dict[str, Any]:
     """Run the real AgricreditModel and map outputs to DB schema fields."""
-    # Map tenure_years to experience level
-    tenure = farm.get("tenure_years", 0) or 0
-    if tenure >= 5:
+    # Map experience_years from user profile to experience level
+    exp_years = user_doc.get("experience_years", 0) or 0
+    if exp_years >= 5:
         experience = "experienced"
-    elif tenure >= 2:
+    elif exp_years >= 2:
         experience = "intermediate"
     else:
         experience = "beginner"
@@ -145,7 +145,7 @@ def create_application(payload: CreditApplicationCreate) -> Any:
 
     # 2. Run real AI analysis
     try:
-        ai_results = _run_ai_analysis(payload, farm)
+        ai_results = _run_ai_analysis(payload, farm, user_doc)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"AI analysis failed: {str(e)}")
     
