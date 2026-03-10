@@ -5,7 +5,7 @@ from typing import Any
 from bson import ObjectId
 from bson.errors import InvalidId
 from fastapi import APIRouter, HTTPException, status
-from pymongo.database import Database
+from motor.motor_asyncio import AsyncIOMotorDatabase
 
 from app.core.database import get_database
 from app.models.schemas import (
@@ -23,7 +23,7 @@ router = APIRouter(prefix="/credit-applications", tags=["credit_applications"])
 _model = AgricreditModel()
 
 
-def _get_db() -> Database:  # type: ignore[type-arg]
+def _get_db() -> AsyncIOMotorDatabase:
     return get_database()
 
 
@@ -102,10 +102,10 @@ def _run_ai_analysis(payload: CreditApplicationCreate, farm: dict, user_doc: dic
 
 
 @router.get("/", response_model=list[CreditApplication])
-def list_applications() -> list[Any]:
+async def list_applications() -> list[Any]:
     db = _get_db()
     cursor = db.credit_applications.find()
-    docs = list(cursor.limit(100))
+    docs = await cursor.to_list(length=100)
     results = []
     for doc in docs:
         d = doc_to_dict(doc)
@@ -115,10 +115,10 @@ def list_applications() -> list[Any]:
 
 
 @router.get("/by-farm/{farm_id}", response_model=list[CreditApplication])
-def list_applications_by_farm(farm_id: str) -> list[Any]:
+async def list_applications_by_farm(farm_id: str) -> list[Any]:
     db = _get_db()
     cursor = db.credit_applications.find({"farmer_id": farm_id}).sort("created_at", -1)
-    docs = list(cursor.limit(50))
+    docs = await cursor.to_list(length=50)
     results = []
     for doc in docs:
         d = doc_to_dict(doc)
@@ -128,16 +128,16 @@ def list_applications_by_farm(farm_id: str) -> list[Any]:
 
 
 @router.get("/by-user/{clerk_id}", response_model=list[CreditApplication])
-def list_applications_by_user(clerk_id: str) -> list[Any]:
+async def list_applications_by_user(clerk_id: str) -> list[Any]:
     db = _get_db()
-    user_doc = db.users.find_one({"clerk_id": clerk_id})
+    user_doc = await db.users.find_one({"clerk_id": clerk_id})
     if not user_doc:
         return []
     farm_ids = [f.get("id") for f in user_doc.get("farms", []) if f.get("id")]
     if not farm_ids:
         return []
     cursor = db.credit_applications.find({"farmer_id": {"$in": farm_ids}}).sort("created_at", -1)
-    docs = list(cursor.limit(100))
+    docs = await cursor.to_list(length=100)
     results = []
     for doc in docs:
         d = doc_to_dict(doc)
@@ -151,11 +151,11 @@ def list_applications_by_user(clerk_id: str) -> list[Any]:
     response_model=CreditApplication,
     status_code=status.HTTP_201_CREATED,
 )
-def create_application(payload: CreditApplicationCreate) -> Any:
+async def create_application(payload: CreditApplicationCreate) -> Any:
     db = _get_db()
     
     # 1. Verify farm exists in user's profile
-    user_doc = db.users.find_one({"clerk_id": payload.clerk_id})
+    user_doc = await db.users.find_one({"clerk_id": payload.clerk_id})
     if not user_doc:
         raise HTTPException(status_code=404, detail="User not found")
     
@@ -179,9 +179,9 @@ def create_application(payload: CreditApplicationCreate) -> Any:
         updated_at=now,
     )
     doc_dict = doc.model_dump(by_alias=True, exclude={"id"})
-    result = db.credit_applications.insert_one(doc_dict)
+    result = await db.credit_applications.insert_one(doc_dict)
     
-    created = db.credit_applications.find_one({"_id": result.inserted_id})
+    created = await db.credit_applications.find_one({"_id": result.inserted_id})
     if created is None:
         raise HTTPException(status_code=500, detail="Failed to retrieve created document")
         
@@ -191,13 +191,13 @@ def create_application(payload: CreditApplicationCreate) -> Any:
 
 
 @router.get("/{application_id}", response_model=CreditApplication)
-def get_application(application_id: str) -> Any:
+async def get_application(application_id: str) -> Any:
     db = _get_db()
     try:
         oid = ObjectId(application_id)
     except InvalidId:
         raise HTTPException(status_code=400, detail="Invalid application ID")
-    doc = db.credit_applications.find_one({"_id": oid})
+    doc = await db.credit_applications.find_one({"_id": oid})
     if doc is None:
         raise HTTPException(status_code=404, detail="Application not found")
     d = doc_to_dict(doc)
@@ -206,7 +206,7 @@ def get_application(application_id: str) -> Any:
 
 
 @router.patch("/{application_id}", response_model=CreditApplication)
-def update_application(
+async def update_application(
     application_id: str, payload: CreditApplicationUpdate
 ) -> Any:
     db = _get_db()
@@ -218,12 +218,12 @@ def update_application(
     if not update_data:
         raise HTTPException(status_code=400, detail="No fields to update")
     update_data["updated_at"] = datetime.now(timezone.utc)
-    result = db.credit_applications.update_one(
+    result = await db.credit_applications.update_one(
         {"_id": oid}, {"$set": update_data}
     )
     if result.matched_count == 0:
         raise HTTPException(status_code=404, detail="Application not found")
-    doc = db.credit_applications.find_one({"_id": oid})
+    doc = await db.credit_applications.find_one({"_id": oid})
     if doc is None:
         raise HTTPException(status_code=404, detail="Application not found")
     d = doc_to_dict(doc)
@@ -232,12 +232,12 @@ def update_application(
 
 
 @router.delete("/{application_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_application(application_id: str) -> None:
+async def delete_application(application_id: str) -> None:
     db = _get_db()
     try:
         oid = ObjectId(application_id)
     except InvalidId:
         raise HTTPException(status_code=400, detail="Invalid application ID")
-    result = db.credit_applications.delete_one({"_id": oid})
+    result = await db.credit_applications.delete_one({"_id": oid})
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="Application not found")

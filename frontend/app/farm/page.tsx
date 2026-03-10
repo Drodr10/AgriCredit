@@ -8,6 +8,8 @@ import dynamic from "next/dynamic";
 import { useVoiceContext } from "../../components/VoiceProvider";
 import { VoiceInput } from "../../components/VoiceInput";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 const LocationMap = dynamic(() => import("@/app/components/LocationMap"), {
   ssr: false,
   loading: () => (
@@ -63,7 +65,7 @@ export default function OnboardingFlow() {
 
   const handleSubmit = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/users/me/farms?clerk_id=${user?.id}`, {
+      const response = await fetch(`${API_URL}/users/me/farms?clerk_id=${user?.id}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

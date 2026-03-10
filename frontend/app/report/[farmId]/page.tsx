@@ -3,6 +3,8 @@
 import React, { useEffect, useState, use } from "react";
 import Link from "next/link";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 interface Report {
   id: string;
   crop_type: string;
@@ -27,7 +29,7 @@ export default function FarmReportsPage({ params }: { params: Promise<{ farmId: 
 
   const fetchReports = async () => {
     try {
-      const response = await fetch(`http://localhost:8000/credit-applications/by-farm/${farmId}`);
+      const response = await fetch(`${API_URL}/credit-applications/by-farm/${farmId}`);
       if (response.ok) {
         const data = await response.json();
         setReports(data);
@@ -42,7 +44,7 @@ export default function FarmReportsPage({ params }: { params: Promise<{ farmId: 
   const handleDelete = async (id: string) => {
     setDeleting(true);
     try {
-      const response = await fetch(`http://localhost:8000/credit-applications/${id}`, {
+      const response = await fetch(`${API_URL}/credit-applications/${id}`, {
         method: "DELETE",
       });
       if (response.ok) {

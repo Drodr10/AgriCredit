@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { useVoiceContext } from "../../components/VoiceProvider";
 import { useVoiceAssistant } from "../../hooks/useVoice";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 interface Farm {
   id: string;
   name: string;
@@ -24,7 +26,7 @@ export default function Dashboard() {
     async function fetchUserData() {
       if (!isLoaded || !isSignedIn) return;
       try {
-        const response = await fetch(`http://localhost:8000/users/me?clerk_id=${user.id}&email=${user.primaryEmailAddress?.emailAddress || ""}`);
+        const response = await fetch(`${API_URL}/users/me?clerk_id=${user.id}&email=${user.primaryEmailAddress?.emailAddress || ""}`);
         if (response.ok) {
           const data = await response.json();
           setUserData(data);
@@ -62,7 +64,7 @@ function FarmerView({ farms, setUserData, clerkId }: { farms: Farm[], setUserDat
 
     setDeletingId(farmId);
     try {
-      const res = await fetch(`http://localhost:8000/users/me/farms/${farmId}?clerk_id=${clerkId}`, {
+      const res = await fetch(`${API_URL}/users/me/farms/${farmId}?clerk_id=${clerkId}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Failed to delete farm");

@@ -3,6 +3,9 @@
 import React, { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 import { useVoiceContext } from "../../../components/VoiceProvider";
 import { useVoiceAssistant } from "../../../hooks/useVoice";
 
@@ -55,7 +58,7 @@ function AnalysisContent() {
 
   useEffect(() => {
     if (id) {
-      fetch(`http://localhost:8000/credit-applications/${id}`)
+      fetch(`${API_URL}/credit-applications/${id}`)
         .then(res => res.json())
         .then(data => {
           setData(data);
@@ -98,7 +101,7 @@ function AnalysisContent() {
 
     setGenerating(true);
     try {
-      const res = await fetch(`http://localhost:8000/reports/generate/${id}`, { method: "POST" });
+      const res = await fetch(`${API_URL}/reports/generate/${id}`, { method: "POST" });
       if (!res.ok) {
         const err = await res.json().catch(() => ({ detail: "Report generation failed" }));
         const errHtml = `<div style="padding:32px;color:#dc2626;font-family:system-ui;font-size:14px;font-weight:600;">Error: ${err.detail || "Report generation failed"}</div>`;
@@ -263,7 +266,7 @@ function AnalysisContent() {
         <div className="bg-white rounded border border-gray-200 overflow-hidden print-page">
           <div className="flex items-center justify-between px-6 py-3 bg-gray-50 border-b border-gray-200">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-gray-900 tracking-tight">AgriCredit</span>
+              <span className="text-sm font-bold text-gray-900 tracking-tight">Agricredit</span>
               <span className="text-[11px] text-gray-300">|</span>
               <span className="text-[11px] font-medium text-gray-400">Confidential</span>
             </div>
@@ -369,7 +372,7 @@ function AnalysisContent() {
 
           <div className="px-6 py-2.5 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
             <p className="text-[11px] text-gray-400">For internal credit committee use only. Not intended as regulatory advice.</p>
-            <p className="text-[11px] text-gray-400">AgriCredit Risk Assessment Services</p>
+            <p className="text-[11px] text-gray-400">Agricredit Risk Assessment Services</p>
           </div>
         </div>
 
@@ -377,7 +380,7 @@ function AnalysisContent() {
         <div className="bg-white rounded border border-gray-200 overflow-hidden print-page print-page-break">
           <div className="flex items-center justify-between px-6 py-3 bg-gray-50 border-b border-gray-200">
             <div className="flex items-center gap-2">
-              <span className="text-sm font-bold text-gray-900 tracking-tight">AgriCredit</span>
+              <span className="text-sm font-bold text-gray-900 tracking-tight">Agricredit</span>
               <span className="text-[11px] text-gray-300">|</span>
               <span className="text-[11px] font-medium text-gray-400">Confidential</span>
             </div>
@@ -507,7 +510,7 @@ function AnalysisContent() {
 
           <div className="px-6 py-2.5 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
             <p className="text-[11px] text-gray-400">For internal credit committee use only. Not intended as regulatory advice.</p>
-            <p className="text-[11px] text-gray-400">AgriCredit Risk Assessment Services</p>
+            <p className="text-[11px] text-gray-400">Agricredit Risk Assessment Services</p>
           </div>
         </div>
       </div>

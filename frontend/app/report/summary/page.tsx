@@ -3,6 +3,8 @@
 import { useSearchParams } from "next/navigation";
 import { useEffect, useState, Suspense } from "react";
 import Link from "next/link";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 import { VoiceReport } from "../../../components/VoiceReport";
 import { useVoiceContext } from "../../../components/VoiceProvider";
 
@@ -27,7 +29,7 @@ function SummaryContent() {
 
   useEffect(() => {
     if (id) {
-      fetch(`http://localhost:8000/credit-applications/${id}`)
+      fetch(`${API_URL}/credit-applications/${id}`)
         .then(res => res.json())
         .then(data => {
           setData(data);
@@ -152,7 +154,7 @@ function SummaryContent() {
         </div>
         
         <p className="text-center text-xs text-gray-300">
-          AgriCredit AI Summary
+          Agricredit AI Summary
         </p>
       </div>
     </div>

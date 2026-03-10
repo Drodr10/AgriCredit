@@ -127,7 +127,7 @@ async def generate_report(application_id: str) -> HTMLResponse:
     except InvalidId:
         raise HTTPException(status_code=400, detail="Invalid application ID")
 
-    application = db.credit_applications.find_one({"_id": oid})
+    application = await db.credit_applications.find_one({"_id": oid})
     if not application:
         raise HTTPException(status_code=404, detail="Application not found")
 
@@ -135,7 +135,7 @@ async def generate_report(application_id: str) -> HTMLResponse:
     clerk_id = application.get("clerk_id")
     farmer_id = application.get("farmer_id")
 
-    user_doc = db.users.find_one({"clerk_id": clerk_id}) or {}
+    user_doc = await db.users.find_one({"clerk_id": clerk_id}) or {}
     farms = user_doc.get("farms", [])
     farm = next((f for f in farms if f.get("id") == farmer_id), {})
 

@@ -65,7 +65,7 @@ class RealDataPipeline:
         mandi_path = self.data_dir / 'mandi_prices.csv'
         if mandi_path.exists():
             mandi = pd.read_csv(mandi_path)
-            rice_wheat = mandi[mandi['Commodity'].str.contains('rice|wheat', case=False, na=False)]
+            rice_wheat = mandi[mandi['Commodity'].str.contains('rice|wheat', case=False, na=False)].copy()
             if not rice_wheat.empty:
                 rice_wheat['volatility_pct'] = (rice_wheat['Max_x0020_Price'] - rice_wheat['Min_x0020_Price']) / rice_wheat['Modal_x0020_Price'] * 100
                 self.prices = {'pricevolatilitypct': rice_wheat['volatility_pct'].mean()}

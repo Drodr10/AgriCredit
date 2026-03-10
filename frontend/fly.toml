@@ -1,0 +1,38 @@
+app = "agricredit-web"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+  [build.args]
+    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_ZmVhc2libGUtdHVydGxlLTU4LmNsZXJrLmFjY291bnRzLmRldiQ"
+    NEXT_PUBLIC_API_URL = "https://agricredit-api.fly.dev"
+
+[env]
+  NODE_ENV = "production"
+
+[http_service]
+  internal_port = 3000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+[http_service.concurrency]
+  type = "connections"
+  hard_limit = 100
+  soft_limit = 50
+
+[vm]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
+
+[checks.http]
+  type = "http"
+  grace_period = "10s"
+  interval = "30s"
+  method = "get"
+  path = "/"
+  protocol = "http"
+  restart_limit = 3
+  timeout = "5s"

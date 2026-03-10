@@ -9,9 +9,17 @@ export const VoiceProvider = ({ children }) => {
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(false);
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/voice/set_language?lang=${lang}`, {
-      method: 'POST'
-    }).catch(console.error);
+    // Set language on backend, but don't block rendering if it fails
+    const timer = setTimeout(() => {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      fetch(`${API_URL}/voice/set_language?lang=${lang}`, {
+        method: 'POST'
+      }).catch(() => {
+        // Silently fail - voice service is optional
+      });
+    }, 100);
+    
+    return () => clearTimeout(timer);
   }, [lang]);
 
   return (

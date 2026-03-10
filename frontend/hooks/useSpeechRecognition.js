@@ -1,6 +1,8 @@
 "use client";
 import { useState, useRef, useCallback } from 'react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 export const useSpeechRecognition = (lang = 'hi') => {
   const [isListening, setIsListening] = useState(false);
   const [transcript, setTranscript] = useState('');
@@ -37,7 +39,7 @@ export const useSpeechRecognition = (lang = 'hi') => {
         formData.append('file', audioBlob, 'record.webm');
 
         try {
-          const response = await fetch('http://localhost:8000/voice/stt', {
+          const response = await fetch(`${API_URL}/voice/stt`, {
             method: 'POST',
             body: formData,
           });

@@ -20,19 +20,52 @@ interface BenchmarkData {
 export function PortfolioRiskChart() {
   const [data, setData] = useState<BenchmarkData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetch('/graphs/benchmark_summary.json')
-      .then(res => res.json())
-      .then(json => {
-        setData(json);
+    let isMounted = true;
+    const timeout = setTimeout(() => {
+      if (isMounted && loading) {
+        setError('Data load timeout');
         setLoading(false);
+      }
+    }, 5000);
+
+    fetch('/graphs/benchmark_summary.json', { cache: 'no-store' })
+      .then(res => {
+        clearTimeout(timeout);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then(json => {
+        if (isMounted) {
+          setData(json);
+          setLoading(false);
+          setError(null);
+        }
       })
       .catch(err => {
-        console.error('Failed to load benchmark data:', err);
-        setLoading(false);
+        clearTimeout(timeout);
+        if (isMounted) {
+          console.error('Failed to load benchmark data:', err);
+          setError(`Failed to load: ${err.message}`);
+          setLoading(false);
+        }
       });
+
+    return () => {
+      isMounted = false;
+      clearTimeout(timeout);
+    };
   }, []);
+
+  if (error) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="text-sm text-red-500">{error}</div>
+      </div>
+    );
+  }
 
   if (loading || !data) {
     return (

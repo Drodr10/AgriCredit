@@ -1,12 +1,14 @@
 import { useState } from 'react';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 export const useVoice = (lang: string = 'hi') => {
   const [isPlaying, setIsPlaying] = useState(false);
 
   const speak = async (text_id: string) => {
     setIsPlaying(true);
     try {
-      const res = await fetch('http://localhost:8000/voice/tts', {
+      const res = await fetch(`${API_URL}/voice/tts`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text_id, lang })

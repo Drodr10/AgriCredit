@@ -49,3 +49,8 @@ app.state.lang = "hi"
 @app.get("/", tags=["health"])
 async def health_check() -> dict[str, str]:
     return {"status": "ok", "service": settings.app_title}
+
+
+@app.get("/health", tags=["health"])
+async def health() -> dict[str, str]:
+    return {"status": "healthy", "service": settings.app_title}

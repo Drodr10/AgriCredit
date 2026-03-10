@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useRef, useState, useEffect } from "react";
-import { HeatmapChart } from "./components/charts/HeatmapChart";
-import { PortfolioRiskChart } from "./components/charts/PortfolioRiskChart";
-import { ROCCurveChart } from "./components/charts/ROCCurveChart";
-import { ConfusionMatrixChart } from "./components/charts/ConfusionMatrixChart";
+import dynamic from 'next/dynamic';
+
+const HeatmapChart = dynamic(() => import('./components/charts/HeatmapChart').then(mod => mod.HeatmapChart), { ssr: false });
+const PortfolioRiskChart = dynamic(() => import('./components/charts/PortfolioRiskChart').then(mod => mod.PortfolioRiskChart), { ssr: false });
+const ROCCurveChart = dynamic(() => import('./components/charts/ROCCurveChart').then(mod => mod.ROCCurveChart), { ssr: false });
+const ConfusionMatrixChart = dynamic(() => import('./components/charts/ConfusionMatrixChart').then(mod => mod.ConfusionMatrixChart), { ssr: false });
 
 /* ── Scroll-reveal wrapper (subtle opacity only, no translate) ── */
 
@@ -102,7 +104,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-6 lg:px-10">
           <Reveal>
             <p className="text-sm font-semibold uppercase tracking-widest text-green-800 mb-2">Benefits</p>
-            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Why AgriCredit</h2>
+            <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Why Agricredit</h2>
             <p className="text-base text-gray-500 max-w-xl mb-16">
               Traditional credit scoring fails agriculture. We built an alternative that works.
             </p>
@@ -112,7 +114,7 @@ export default function Home() {
             {[
               {
                 title: "Helps farmers without credit history",
-                desc: "Over 80% of small Indian farmers lack formal credit records. AgriCredit uses farm-level environmental and market data instead.",
+                desc: "Over 80% of small Indian farmers lack formal credit records. Agricredit uses farm-level environmental and market data instead.",
               },
               {
                 title: "Uses weather, crop & market data",
@@ -321,7 +323,7 @@ export default function Home() {
                   <path d="M12 20V10" />
                   <path d="M12 10c-2-3-6-4-6-8 4 0 6 3 6 3s2-3 6-3c0 4-4 5-6 8z" fill="currentColor" stroke="none" />
                 </svg>
-                <span className="text-sm font-bold text-gray-900">AgriCredit</span>
+                <span className="text-sm font-bold text-gray-900">Agricredit</span>
               </div>
               <p className="text-xs text-gray-500 leading-relaxed max-w-[200px]">
                 Turning agricultural data into financial opportunity for Indian farmers.
@@ -341,7 +343,7 @@ export default function Home() {
 
         <div className="border-t border-gray-200">
           <div className="max-w-5xl mx-auto px-6 lg:px-10 py-4 flex flex-col sm:flex-row items-center justify-between gap-2">
-            <p className="text-xs text-gray-400">&copy; {new Date().getFullYear()} AgriCredit. All rights reserved.</p>
+            <p className="text-xs text-gray-400">&copy; {new Date().getFullYear()} Agricredit. All rights reserved.</p>
             <div className="flex items-center gap-4">
               <span className="text-xs text-gray-400">Privacy</span>
               <span className="text-xs text-gray-400">Terms</span>

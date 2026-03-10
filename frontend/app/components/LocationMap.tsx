@@ -7,6 +7,8 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { scaleSequential } from 'd3-scale';
 import { interpolateYlGn, interpolateBlues } from 'd3-scale-chromatic';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 import {
   INDIA_DROUGHT_DATA,
   getSpeiColor,
@@ -155,7 +157,7 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, f
   // Fetch crop data when active layer is 'crop' or parameters change
   useEffect(() => {
     if (activeLayer === 'crop') {
-      fetch(`http://localhost:8000/data/crop-yield?crop=${selectedCrop}&year=${selectedYear}`)
+      fetch(`${API_URL}/data/crop-yield?crop=${selectedCrop}&year=${selectedYear}`)
         .then(res => {
           if (!res.ok) throw new Error('Data fetch failed');
           return res.json();
@@ -190,7 +192,7 @@ export default function LocationMap({ coordinates, location, farmSizeHectares, f
   // Fetch Rainfall Data
   useEffect(() => {
     if (activeLayer === 'rainfall' && Object.keys(rainfallData).length === 0) {
-      fetch(`http://localhost:8000/data/rainfall`)
+      fetch(`${API_URL}/data/rainfall`)
         .then(res => {
           if (!res.ok) throw new Error('Data fetch failed');
           return res.json();

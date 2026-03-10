@@ -7,6 +7,8 @@ import Link from "next/link";
 import { useVoiceContext } from "../../components/VoiceProvider";
 import { VoiceInput } from "../../components/VoiceInput";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
 const LOAN_PURPOSES = [
   { id: "seeds", label: "Seeds & Sowing" },
   { id: "machines", label: "Machinery & Equipment" },
@@ -59,7 +61,7 @@ function CreditApplicationForm() {
     try {
       const clerkId = user?.id;
       const email = user?.primaryEmailAddress?.emailAddress || "";
-      const response = await fetch(`http://localhost:8000/users/me?clerk_id=${clerkId}&email=${email}`);
+      const response = await fetch(`${API_URL}/users/me?clerk_id=${clerkId}&email=${email}`);
       if (response.ok) {
         const data = await response.json();
         const userFarms = data.farms || [];
@@ -87,7 +89,7 @@ function CreditApplicationForm() {
     e.preventDefault();
     setSubmitting(true);
     try {
-      const response = await fetch(`http://localhost:8000/credit-applications/`, {
+      const response = await fetch(`${API_URL}/credit-applications/`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -270,7 +272,7 @@ function CreditApplicationForm() {
            <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
            </svg>
-           Processed in real-time by the AgriCredit ML Engine
+           Processed in real-time by the Agricredit ML Engine
         </p>
       </div>
     </div>

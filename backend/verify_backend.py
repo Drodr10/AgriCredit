@@ -5,7 +5,7 @@ import time
 BASE_URL = "http://localhost:8000"
 
 def test_workflow():
-    print("--- Testing AgriCredit Backend Workflow ---")
+    print("--- Testing Agricredit Backend Workflow ---")
     
     # 1. Create a Farmer
     farmer_data = {

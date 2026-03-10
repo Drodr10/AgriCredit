@@ -1,6 +1,6 @@
 # Proof of Work: XGBoost 95% AUC Model Upgrade
 
-This document serves as technical proof for the successful transition of the AgriCredit risk engine from Random Forest to XGBoost.
+This document serves as technical proof for the successful transition of the Agricredit risk engine from Random Forest to XGBoost.
 
 ## 1. Training Performance (Verified)
 The model was trained using a robust pipeline in `app/ml/train_xgb.py` featuring **5-Fold Cross-Validation** and **Regularization** to prevent overfitting.

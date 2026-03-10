@@ -3,7 +3,6 @@ import { DM_Sans } from "next/font/google";
 import {
   ClerkProvider,
   Show,
-  SignInButton,
   SignUpButton,
   UserButton,
 } from "@clerk/nextjs";
@@ -17,9 +16,9 @@ const dmSans = DM_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "AgriCredit — AI-Powered Farm Risk Reports",
+  title: "Agricredit — AI-Powered Farm Risk Reports",
   description:
-    "AgriCredit helps Indian farmers access fairer loans by turning weather, crop, and market data into transparent AI risk assessments. No credit history needed.",
+    "Agricredit helps Indian farmers access fairer loans by turning weather, crop, and market data into transparent AI risk assessments. No credit history needed.",
 };
 
 export default function RootLayout({
@@ -60,11 +59,6 @@ export default function RootLayout({
             <div className="flex items-center gap-4">
               <LanguageSelector />
               <Show when="signed-out">
-                <SignInButton mode="modal" forceRedirectUrl="/dashboard">
-                  <button className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors cursor-pointer">
-                    Sign In
-                  </button>
-                </SignInButton>
                 <SignUpButton mode="modal" forceRedirectUrl="/dashboard">
                   <button className="rounded bg-green-800 px-5 py-2 text-sm font-semibold text-white hover:bg-green-700 transition-colors cursor-pointer">
                     Get Started
