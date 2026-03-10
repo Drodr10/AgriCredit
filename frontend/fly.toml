@@ -1,4 +1,4 @@
-app = "agricredit-web"
+app = "agricredit"
 primary_region = "iad"
 
 [build]
