@@ -18,12 +18,9 @@ export const useVoiceAssistant = (lang = 'hi') => {
         setIsSpeaking(true);
         audio.onended = () => setIsSpeaking(false);
       } else if (data.error) {
-        console.error("Backend returned TTS error:", data.error);
-        if (data.error.includes("NoneType") || data.error.includes("Client")) {
-           alert("Voice Assistant Error: Please add ELEVENLABS_API_KEY to your backend .env file and restart the backend.");
-        } else {
-           alert("Voice Assistant Error: " + data.error);
-        }
+        console.warn("Voice Assistant TTS error:", data.error);
+        setIsSpeaking(false);
+        return;
       }
     } catch (err) {
       console.error("Voice error:", err);

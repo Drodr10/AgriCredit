@@ -163,6 +163,9 @@ async def generate_tts(voice_req: VoiceRequest, request: Request):
     
     try:
         client = request.app.state.voice_client
+        if client is None:
+            raise RuntimeError("ElevenLabs client is not configured")
+
         audio_generator = client.text_to_speech.convert(
             voice_id=voice_id,
             text=translated,
