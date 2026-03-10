@@ -254,7 +254,7 @@ function EditFarmContent() {
                     style={{ height: 80 }}
                   >
                     <Image src={soil.image} alt={soil.name} fill className="object-cover object-left scale-125 transition-transform group-hover:scale-150 duration-700 opacity-70" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-white via-white/60 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/40 to-transparent"></div>
                     <div className="absolute inset-0 flex items-center px-5">
                       <div>
                         <h3 className="text-base font-black tracking-tighter text-slate-900">{soil.name}</h3>
@@ -299,7 +299,7 @@ function EditFarmContent() {
                     style={{ height: 64 }}
                   >
                     <Image src={type.image} alt={type.name} fill className="object-cover object-left scale-125 transition-transform group-hover:scale-150 duration-700 opacity-60" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-white via-white/60 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/40 to-transparent"></div>
                     <div className="absolute inset-0 flex items-center px-5">
                       <div>
                         <span className="text-base font-black tracking-tighter text-slate-900">{type.name}</span>
@@ -334,7 +334,7 @@ function EditFarmContent() {
                     style={{ height: 64 }}
                   >
                     <Image src={type.image} alt={type.name} fill className="object-cover object-left scale-125 transition-transform group-hover:scale-150 duration-700 opacity-60" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-white via-white/60 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/40 to-transparent"></div>
                     <div className="absolute inset-0 flex items-center px-5">
                       <div>
                         <span className="text-base font-black tracking-tighter text-slate-900">{type.name}</span>

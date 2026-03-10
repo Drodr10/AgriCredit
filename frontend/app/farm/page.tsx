@@ -69,14 +69,14 @@ export default function OnboardingFlow() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-           ...formData,
-           clerk_id: user?.id || null,
-           email: user?.primaryEmailAddress?.emailAddress || null,
-           phone: user?.primaryPhoneNumber?.phoneNumber || null,
+          ...formData,
+          clerk_id: user?.id || null,
+          email: user?.primaryEmailAddress?.emailAddress || null,
+          phone: user?.primaryPhoneNumber?.phoneNumber || null,
         }),
       });
       if (response.ok) {
-    router.push("/dashboard");
+        router.push("/dashboard");
       } else {
         const errData = await response.json();
         console.error("Server error:", errData);
@@ -193,15 +193,14 @@ export default function OnboardingFlow() {
                   <button
                     key={soil.id}
                     onClick={() => setFormData({ ...formData, soil_category: soil.id })}
-                    className={`relative rounded overflow-hidden border-2 transition-colors text-left ${
-                      formData.soil_category === soil.id
-                        ? "border-green-800"
-                        : "border-gray-200 hover:border-green-700/40"
-                    }`}
+                    className={`relative rounded overflow-hidden border-2 transition-colors text-left ${formData.soil_category === soil.id
+                      ? "border-green-800"
+                      : "border-gray-200 hover:border-green-700/40"
+                      }`}
                     style={{ height: 72 }}
                   >
-                    <Image src={soil.image} alt={soil.name} fill className="object-cover object-center opacity-50" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-white/40"></div>
+                    <Image src={soil.image} alt={soil.name} fill className="object-cover object-left scale-125 opacity-50" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/40 to-transparent"></div>
                     <div className="absolute inset-0 flex items-center px-4">
                       <div>
                         <h3 className="text-sm font-semibold text-gray-900">{soil.name}</h3>
@@ -238,15 +237,14 @@ export default function OnboardingFlow() {
                   <button
                     key={type.id}
                     onClick={() => setFormData({ ...formData, irrigation_type: type.id })}
-                    className={`relative rounded overflow-hidden border-2 transition-colors text-left ${
-                      formData.irrigation_type === type.id
-                        ? "border-green-800"
-                        : "border-gray-200 hover:border-green-700/40"
-                    }`}
+                    className={`relative rounded overflow-hidden border-2 transition-colors text-left ${formData.irrigation_type === type.id
+                      ? "border-green-800"
+                      : "border-gray-200 hover:border-green-700/40"
+                      }`}
                     style={{ height: 56 }}
                   >
-                    <Image src={type.image} alt={type.name} fill className="object-cover object-center opacity-40" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-white/40"></div>
+                    <Image src={type.image} alt={type.name} fill className="object-cover object-left scale-125 opacity-40" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/40 to-transparent"></div>
                     <div className="absolute inset-0 flex items-center px-4">
                       <div>
                         <span className="text-sm font-semibold text-gray-900">{type.name}</span>
@@ -273,15 +271,14 @@ export default function OnboardingFlow() {
                   <button
                     key={type.id}
                     onClick={() => setFormData({ ...formData, machinery_type: type.id })}
-                    className={`relative rounded overflow-hidden border-2 transition-colors text-left ${
-                      formData.machinery_type === type.id
-                        ? "border-green-800"
-                        : "border-gray-200 hover:border-green-700/40"
-                    }`}
+                    className={`relative rounded overflow-hidden border-2 transition-colors text-left ${formData.machinery_type === type.id
+                      ? "border-green-800"
+                      : "border-gray-200 hover:border-green-700/40"
+                      }`}
                     style={{ height: 56 }}
                   >
-                    <Image src={type.image} alt={type.name} fill className="object-cover object-center opacity-40" />
-                    <div className="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-white/40"></div>
+                    <Image src={type.image} alt={type.name} fill className="object-cover object-left scale-125 opacity-40" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-white/90 via-white/40 to-transparent"></div>
                     <div className="absolute inset-0 flex items-center px-4">
                       <div>
                         <span className="text-sm font-semibold text-gray-900">{type.name}</span>
@@ -314,11 +311,10 @@ export default function OnboardingFlow() {
             <button
               onClick={step === 4 ? handleSubmit : nextStep}
               disabled={!canContinue()}
-              className={`flex-1 py-2.5 rounded text-sm font-semibold transition-colors ${
-                !canContinue()
-                  ? "bg-gray-100 text-gray-300 cursor-not-allowed"
-                  : "bg-green-800 hover:bg-green-700 text-white"
-              }`}
+              className={`flex-1 py-2.5 rounded text-sm font-semibold transition-colors ${!canContinue()
+                ? "bg-gray-100 text-gray-300 cursor-not-allowed"
+                : "bg-green-800 hover:bg-green-700 text-white"
+                }`}
             >
               {step === 4 ? "Submit Profile" : "Continue"}
             </button>
